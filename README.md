@@ -74,7 +74,6 @@ origin init
 **What it does:**
 1. Runs `forge init --mode analyze` to scan your repository and generate implementation agents.
 2. Runs `specify init . --integration copilot` to install the base Spec Kit slash commands.
-3. Injects a baseline `CONSTITUTION.md` into the project root.
 
 **IDE-Only Mode:**
 ```bash
