@@ -36,8 +36,8 @@ def init_ide():
     import shutil
     import re
     
-    source_agents_path = Path(__file__).resolve().parent.parent.parent / "templates" / "agents"
-    source_prompts_path = Path(__file__).resolve().parent.parent.parent / "templates" / "prompts"
+    source_agents_path = Path(__file__).resolve().parent.parent / "templates" / "agents"
+    source_prompts_path = Path(__file__).resolve().parent.parent / "templates" / "prompts"
     
     if not source_agents_path.exists():
         typer.secho(f"Error: Templates path {source_agents_path} does not exist.", fg=typer.colors.RED)

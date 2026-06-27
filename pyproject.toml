@@ -15,3 +15,6 @@ dependencies = [
 
 [project.scripts]
 origin = "origin_cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["origin_cli"]
