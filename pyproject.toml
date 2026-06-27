@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "origin-cli"
+version = "0.1.0"
+description = "A unified AI Orchestrator CLI integrating Agent Forge and Spec Kit"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "typer>=0.9.0",
+    "rich>=13.0.0"
+]
+
+[project.scripts]
+origin = "origin_cli.main:app"

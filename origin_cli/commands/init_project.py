@@ -1,0 +1,27 @@
+import typer
+from pathlib import Path
+from origin_cli.integrations import agent_forge, speckit
+from origin_cli.constants import BASELINE_CONSTITUTION
+
+def init_project_command():
+    """
+    Initializes a project with Agent Forge and Spec Kit workflows.
+    """
+    typer.secho("Initializing Origin CLI Project...", fg=typer.colors.CYAN)
+    
+    agent_forge.init()
+    speckit.init()
+    
+    agent_forge.generate_legislator_agent()
+    speckit.cross_wire_commands()
+    
+    # Inject the Constitution
+    typer.echo("Injecting baseline CONSTITUTION.md...")
+    constitution_file = Path("CONSTITUTION.md")
+    if not constitution_file.exists():
+        constitution_file.write_text(BASELINE_CONSTITUTION)
+        typer.echo("Created baseline CONSTITUTION.md")
+    else:
+        typer.echo("CONSTITUTION.md already exists, skipping.")
+        
+    typer.secho("Project initialization complete!", fg=typer.colors.GREEN, bold=True)
