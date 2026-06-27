@@ -75,13 +75,9 @@ origin init
 1. Runs `forge init --mode analyze` to scan your repository and generate implementation agents.
 2. Runs `specify init . --integration copilot` to install the base Spec Kit slash commands.
 
-**IDE-Only Mode:**
-```bash
-origin init --ide
-```
-If you prefer not to rely on the underlying NPM CLI tools to initialize your workspace, the `--ide` (or `-i`) flag bypasses them entirely. Instead, it:
-1. Deploys a bundled fleet of Agent Forge personas (e.g. `@forge-brownfield-orchestrator`) directly into your global `~/.copilot/agents/` configuration.
-2. Injects the highly-capable `/forge-create` and `/forge-analyze` entrypoint slash commands directly into your project's `.github/prompts/` folder.
+**Options:**
+- `--ide` (or `-i`): IDE-Only Mode. Bypasses underlying NPM CLI tools and deploys a bundled fleet of Agent Forge personas directly into your global `~/.copilot/agents/` configuration, along with injecting local prompts.
+- `--preset <names>` (or `-p`): Automatically apply integration overrides. Accepts a single preset or a comma/space separated list. Available presets: `jira`, `git`, and `jenkins`. For example, `--preset "jira git"` injects multiple templates to sync Agent Forge workflows directly with your external MCP tools!
 
 ## 🧠 How it Works
 
