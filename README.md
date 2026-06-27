@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-> A unified AI Orchestrator CLI that seamlessly integrates **Agent Forge** and **Spec Kit** to establish a "Coordinator-Worker" AI pattern in your projects.
+> A unified AI Orchestrator CLI that seamlessly integrates **Agent Forge** and **Spec Kit** to establish a powerful "Coordinator-Worker" AI pattern directly in your VS Code Copilot environment.
 
 ## 📖 Table of Contents
 - [Overview](#-overview)
@@ -12,7 +12,7 @@
 - [Installation](#-installation)
 - [Usage](#-usage)
   - [origin setup](#1-origin-setup)
-  - [origin init-project](#2-origin-init-project)
+  - [origin init](#2-origin-init)
 - [How it Works](#-how-it-works)
 - [Contributing](#-contributing)
 
@@ -22,7 +22,7 @@
 
 `origin` simplifies the setup of multi-agent development workflows by bridging the gap between Agent Forge's expert generation and Spec Kit's Copilot integration. 
 
-By default, it automatically generates a `@legislator` agent responsible for architectural planning and constitution drafting, and dynamically configures GitHub Copilot commands to route specific workflows directly to this agent inside your IDE.
+By default, it automatically generates a fleet of specialized writer agents (like `@forge-agent-writer`, `@forge-skill-writer`, etc.) and a `@legislator` agent responsible for architectural planning. It dynamically configures GitHub Copilot commands to route specific workflows directly to these agents inside your IDE.
 
 ## ⚡ Prerequisites
 
@@ -33,7 +33,7 @@ Before installing `origin`, ensure you have:
 
 ## 🚀 Installation
 
-To install `origin` without manually cloning the repository, you can install it directly from GitHub using `pip` (or `pipx` for global CLI tools):
+To install `origin`, you can install it directly from GitHub using `pip` (or `pipx` for global CLI tools):
 
 ```bash
 # Install directly from the GitHub repository
@@ -61,26 +61,37 @@ origin setup
 - Installs `@agent-forge-copilot/cli` globally via `npm`.
 - Installs `specify-cli` globally via `uv` (falling back to `pip` if `uv` isn't found).
 
-### 2. `origin init-project`
+**Options:**
+- `--no-copilot`: Skip the NPM installations of GitHub Copilot CLI and Agent Forge if you already have them or prefer to manage them manually. You will be prompted interactively by default if you do not supply this flag.
 
-This command performs the "invisible magic" setup inside any project directory.
+### 2. `origin init`
+
+This command performs the "invisible magic" setup inside any project directory to initialize the AI workspace.
 
 ```bash
-origin init-project
+origin init
 ```
 **What it does:**
 1. Runs `forge init --mode analyze` to scan your repository and generate implementation agents.
 2. Runs `specify init . --integration copilot` to install the base Spec Kit slash commands.
-3. Automatically generates the `.github/agents/legislator.agent.md` persona.
-4. Cross-wires the Spec Kit commands by creating `.specify/templates/overrides/commands/speckit.constitution.prompt.md` tied to the `@legislator` agent.
-5. Injects a baseline `CONSTITUTION.md` into the project root if it does not already exist.
+3. Automatically generates the `@legislator` agent persona.
+4. Cross-wires the Spec Kit commands so `/speckit.constitution` routes directly to `@legislator`.
+5. Injects a baseline `CONSTITUTION.md` into the project root.
+
+**IDE-Only Mode:**
+```bash
+origin init --ide
+```
+If you prefer not to rely on the underlying NPM CLI tools to initialize your workspace, the `--ide` (or `-i`) flag bypasses them entirely. Instead, it:
+1. Deploys a bundled fleet of Agent Forge personas (e.g. `@forge-brownfield-orchestrator`) directly into your global `~/.copilot/agents/` configuration.
+2. Injects the highly-capable `/forge-create` and `/forge-analyze` entrypoint slash commands directly into your project's `.github/prompts/` folder.
 
 ## 🧠 How it Works
 
 1. Run `origin setup` once on your machine.
-2. Run `origin init` in your target repository.
+2. Run `origin init` (or `origin init --ide`) in your target repository.
 3. Open your project in **VS Code**.
-4. Open GitHub Copilot Chat and type `/speckit.constitution` — Copilot will instantly adopt the `@legislator` persona based on the files `origin` generated for you!
+4. Open GitHub Copilot Chat and type `/forge-analyze` (or `/speckit.constitution`) — Copilot will instantly adopt the configured personas and automate the entire project scaffolding process based on the generated instructions!
 
 ## 🤝 Contributing
 
