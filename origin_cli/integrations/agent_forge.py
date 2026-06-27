@@ -76,10 +76,12 @@ def install_ide():
     
     copied_prompts = 0
     if source_prompts_path.exists():
+        allowed_prompts = ["forge-create.prompt.md", "forge-analyze.prompt.md"]
         for prompt_file in source_prompts_path.rglob("*.prompt.md"):
-            dest_file = local_prompts_dir / prompt_file.name
-            shutil.copy2(prompt_file, dest_file)
-            copied_prompts += 1
+            if prompt_file.name in allowed_prompts:
+                dest_file = local_prompts_dir / prompt_file.name
+                shutil.copy2(prompt_file, dest_file)
+                copied_prompts += 1
             
-    typer.secho(f"Copied {copied_prompts} local slash commands to .github/prompts/", fg=typer.colors.GREEN)
+    typer.secho(f"Copied {copied_prompts} entrypoint slash commands to .github/prompts/", fg=typer.colors.GREEN)
     typer.secho("To use: Open VS Code Copilot Chat and type '/forge-create' or '/forge-analyze'.", fg=typer.colors.CYAN, bold=True)
