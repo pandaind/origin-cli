@@ -78,7 +78,7 @@ origin init-project
 ## 🧠 How it Works
 
 1. Run `origin setup` once on your machine.
-2. Run `origin init-project` in your target repository.
+2. Run `origin init` in your target repository.
 3. Open your project in **VS Code**.
 4. Open GitHub Copilot Chat and type `/speckit.constitution` — Copilot will instantly adopt the `@legislator` persona based on the files `origin` generated for you!
 

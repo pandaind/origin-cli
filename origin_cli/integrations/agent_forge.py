@@ -27,9 +27,10 @@ def generate_legislator_agent():
     legislator_agent_file = agents_dir / "legislator.agent.md"
     legislator_agent_file.write_text(LEGISLATOR_AGENT_PROMPT)
 
-def install_ide():
+def init_ide():
     """
-    Copies Agent Forge .agent.md templates directly into the user's global Copilot configuration.
+    Copies Agent Forge .agent.md templates into the user's global Copilot configuration.
+    Copies Agent Forge entrypoint prompts into the local project's .github/prompts directory.
     Validates YAML frontmatter on all copied templates.
     """
     import shutil

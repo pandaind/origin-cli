@@ -3,13 +3,20 @@ from pathlib import Path
 from origin_cli.integrations import agent_forge, speckit
 from origin_cli.constants import BASELINE_CONSTITUTION
 
-def init_project_command():
+def init_command(
+    ide: bool = typer.Option(False, "--ide", "-i", help="IDE-only mode: do not run agent-forge init, use local Prompts")
+):
     """
     Initializes a project with Agent Forge and Spec Kit workflows.
     """
     typer.secho("Initializing Origin CLI Project...", fg=typer.colors.CYAN)
     
-    agent_forge.init()
+    if ide:
+        typer.secho("Initializing IDE-only local files...", fg=typer.colors.CYAN)
+        agent_forge.init_ide()
+    else:
+        agent_forge.init()
+        
     speckit.init()
     
     agent_forge.generate_legislator_agent()

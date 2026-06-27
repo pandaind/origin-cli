@@ -2,19 +2,23 @@ import typer
 from origin_cli.integrations import agent_forge, speckit
 
 def setup_command(
-    ide: bool = typer.Option(False, "--ide", "-i", help="IDE-only mode: do not install NPM dependencies, install global Copilot agents instead")
+    copilot: bool = typer.Option(None, "--copilot/--no-copilot", help="Install GitHub Copilot CLI and Agent Forge globally via npm")
 ):
     """
-    Checks for and installs underlying CLI dependencies or global agents:
-    - @agent-forge-copilot/cli via npm (default)
-    - specify-cli via uv (default)
+    Checks for and installs underlying CLI dependencies:
+    - @agent-forge-copilot/cli via npm (optional)
+    - specify-cli via uv
     """
-    if ide:
-        typer.secho("Setting up IDE-only templates...", fg=typer.colors.CYAN)
-        agent_forge.install_ide()
-        typer.secho("Setup complete! IDE templates are installed.", fg=typer.colors.GREEN, bold=True)
-    else:
-        typer.secho("Setting up dependencies...", fg=typer.colors.CYAN)
+    typer.secho("Setting up dependencies...", fg=typer.colors.CYAN)
+    
+    if copilot is None:
+        copilot = typer.confirm("Would you like to install the GitHub Copilot CLI and Agent Forge globally via npm?", default=True)
+        
+    if copilot:
         agent_forge.install()
-        speckit.install()
-        typer.secho("Setup complete! Dependencies are installed.", fg=typer.colors.GREEN, bold=True)
+    else:
+        typer.secho("Skipping GitHub Copilot CLI and Agent Forge installation.", fg=typer.colors.YELLOW)
+        
+    speckit.install()
+    
+    typer.secho("Setup complete! Dependencies are installed.", fg=typer.colors.GREEN, bold=True)
