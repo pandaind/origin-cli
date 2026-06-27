@@ -35,23 +35,22 @@ def install_ide():
     import shutil
     import re
     
-    source_path = Path("/Users/cpanda/OSS/agent-forge/src/cli")
-    if not source_path.exists():
-        typer.secho(f"Error: Source path {source_path} does not exist.", fg=typer.colors.RED)
+    source_agents_path = Path(__file__).resolve().parent.parent.parent / "templates" / "agents"
+    source_prompts_path = Path(__file__).resolve().parent.parent.parent / "templates" / "prompts"
+    
+    if not source_agents_path.exists():
+        typer.secho(f"Error: Templates path {source_agents_path} does not exist.", fg=typer.colors.RED)
         return
         
     copilot_agents_dir = Path.home() / ".copilot" / "agents"
-    copilot_prompts_dir = Path.home() / ".copilot" / "prompts"
-    
     copilot_agents_dir.mkdir(parents=True, exist_ok=True)
-    copilot_prompts_dir.mkdir(parents=True, exist_ok=True)
     
     # 1. Copy agent templates
     copied_count = 0
     valid_count = 0
     typer.echo("Copying Agent Forge templates to global ~/.copilot/agents/...")
     
-    for agent_file in source_path.rglob("*.agent.md"):
+    for agent_file in source_agents_path.rglob("*.agent.md"):
         dest_file = copilot_agents_dir / agent_file.name
         shutil.copy2(agent_file, dest_file)
         copied_count += 1
@@ -71,16 +70,16 @@ def install_ide():
             
     typer.secho(f"Copied {copied_count} templates ({valid_count} validated).", fg=typer.colors.GREEN)
     
-    # 3. Generate global slash command prompt
-    forge_setup_prompt = copilot_prompts_dir / "forge-setup.prompt.md"
-    prompt_content = (
-        "---\n"
-        "name: forge-setup\n"
-        "description: Setup Agent Forge configurations for this project\n"
-        "agent: forge-brownfield-orchestrator\n"
-        "---\n"
-        "Please generate the complete Agent Forge setup for this repository.\n"
-    )
-    forge_setup_prompt.write_text(prompt_content)
-    typer.secho(f"Created global slash command at ~/.copilot/prompts/forge-setup.prompt.md", fg=typer.colors.GREEN)
-    typer.secho("To use: Open VS Code Copilot Chat and type '/forge-setup'.", fg=typer.colors.CYAN, bold=True)
+    # 3. Copy local slash command prompts
+    local_prompts_dir = Path(".github/prompts")
+    local_prompts_dir.mkdir(parents=True, exist_ok=True)
+    
+    copied_prompts = 0
+    if source_prompts_path.exists():
+        for prompt_file in source_prompts_path.rglob("*.prompt.md"):
+            dest_file = local_prompts_dir / prompt_file.name
+            shutil.copy2(prompt_file, dest_file)
+            copied_prompts += 1
+            
+    typer.secho(f"Copied {copied_prompts} local slash commands to .github/prompts/", fg=typer.colors.GREEN)
+    typer.secho("To use: Open VS Code Copilot Chat and type '/forge-create' or '/forge-analyze'.", fg=typer.colors.CYAN, bold=True)
