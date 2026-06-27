@@ -1,7 +1,6 @@
 import typer
 from pathlib import Path
 from origin_cli.utils import run_command
-from origin_cli.constants import LEGISLATOR_AGENT_PROMPT
 
 def install():
     """Install @github/copilot and @agent-forge-copilot/cli globally via npm."""
@@ -18,14 +17,6 @@ def init():
     
     typer.echo("Running 'forge init --mode analyze'...")
     run_command(["forge", "init", "--mode", "analyze"])
-
-def generate_legislator_agent():
-    """Create the @legislator persona file."""
-    typer.echo("Generating @legislator agent prompt...")
-    agents_dir = Path(".github/agents")
-    agents_dir.mkdir(parents=True, exist_ok=True)
-    legislator_agent_file = agents_dir / "legislator.agent.md"
-    legislator_agent_file.write_text(LEGISLATOR_AGENT_PROMPT)
 
 def init_ide():
     """

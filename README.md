@@ -22,7 +22,7 @@
 
 `origin` simplifies the setup of multi-agent development workflows by bridging the gap between Agent Forge's expert generation and Spec Kit's Copilot integration. 
 
-By default, it automatically generates a fleet of specialized writer agents (like `@forge-agent-writer`, `@forge-skill-writer`, etc.) and a `@legislator` agent responsible for architectural planning. It dynamically configures GitHub Copilot commands to route specific workflows directly to these agents inside your IDE.
+By default, it automatically generates a fleet of specialized writer agents (like `@forge-agent-writer`, `@forge-skill-writer`, etc.) natively bridging the gap between Agent Forge's expert generation and Spec Kit's Copilot integration.
 
 ## ⚡ Prerequisites
 
@@ -74,9 +74,7 @@ origin init
 **What it does:**
 1. Runs `forge init --mode analyze` to scan your repository and generate implementation agents.
 2. Runs `specify init . --integration copilot` to install the base Spec Kit slash commands.
-3. Automatically generates the `@legislator` agent persona.
-4. Cross-wires the Spec Kit commands so `/speckit.constitution` routes directly to `@legislator`.
-5. Injects a baseline `CONSTITUTION.md` into the project root.
+3. Injects a baseline `CONSTITUTION.md` into the project root.
 
 **IDE-Only Mode:**
 ```bash

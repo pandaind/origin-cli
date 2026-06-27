@@ -19,9 +19,7 @@ def init_command(
         
     speckit.init()
     
-    agent_forge.generate_legislator_agent()
-    speckit.cross_wire_commands()
-    
+
     # Inject the Constitution
     typer.echo("Injecting baseline CONSTITUTION.md...")
     constitution_file = Path("CONSTITUTION.md")
