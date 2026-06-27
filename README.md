@@ -90,6 +90,16 @@ If you prefer not to rely on the underlying NPM CLI tools to initialize your wor
 3. Open your project in **VS Code**.
 4. Open GitHub Copilot Chat and type `/forge-analyze` (or `/speckit.constitution`) — Copilot will instantly adopt the configured personas and automate the entire project scaffolding process based on the generated instructions!
 
+## 🤝 The Best of Both Worlds
+
+`origin` creates a true **Orchestrator-Worker** architecture by leveraging the strengths of both tools:
+
+- **Spec Kit (The Manager):** Handles high-level orchestration, structured workflows, and task breakdowns (e.g., `/speckit.tasks` and `/speckit.implement`).
+- **Agent Forge (The Fleet of Workers):** Scaffolds deeply specialized, domain-specific subagents (e.g., `@forge-frontend-expert`, `@forge-database-expert`).
+
+**The Synergy:**
+When you run `origin init`, it automatically overrides Spec Kit's task generator to become "Agent Aware." When Spec Kit creates a `tasks.md` checklist, it explicitly tags the Agent Forge experts (e.g., `- [ ] @forge-frontend-expert: Create the React components`). During execution, Copilot sees these tags and automatically delegates the work to your specialized agents in parallel (**Fleet Mode**)!
+
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/pandaind/origin-cli/issues).
