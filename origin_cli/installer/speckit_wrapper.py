@@ -1,29 +1,47 @@
 import subprocess
 import typer
 from pathlib import Path
+from typing import List
 
 class SpecKitWrapper:
     """
-    Wrapper for 'specify extension' native commands.
-    Origin delegates all spec-kit specific logic here.
+    Native wrapper for 'specify' CLI commands.
+    Origin delegates all Spec Kit lifecycle operations here.
+    Covers both 'extension' and 'preset' subcommands.
     """
     
     @staticmethod
-    def _run_cmd(args: list[str]) -> bool:
+    def _run_cmd(args: List[str]) -> bool:
+        """Run a specify command silently, printing errors on failure."""
         try:
-            result = subprocess.run(
-                args,
-                check=True,
-                capture_output=True,
-                text=True
-            )
+            subprocess.run(args, check=True, capture_output=True, text=True)
             return True
         except subprocess.CalledProcessError as e:
             typer.secho(f"\nSpec Kit error:\n{e.stderr or e.stdout}", fg=typer.colors.RED)
             return False
         except FileNotFoundError:
-            typer.secho("\nError: 'specify' command not found. Ensure Spec Kit is installed.", fg=typer.colors.RED)
+            typer.secho(
+                "\nError: 'specify' command not found. Ensure Spec Kit is installed.",
+                fg=typer.colors.RED
+            )
             return False
+
+    @staticmethod
+    def _run_passthrough(args: List[str]) -> bool:
+        """Run a specify command inheriting stdout/stderr (for info/list display)."""
+        try:
+            subprocess.run(args, check=True)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+        except FileNotFoundError:
+            typer.secho(
+                "\nError: 'specify' command not found. Ensure Spec Kit is installed.",
+                fg=typer.colors.RED
+            )
+            return False
+
+    # --- Extension Methods ---
 
     @staticmethod
     def add(path: Path) -> bool:
@@ -40,24 +58,14 @@ class SpecKitWrapper:
     @staticmethod
     def disable(name: str) -> bool:
         return SpecKitWrapper._run_cmd(["specify", "extension", "disable", name])
-        
+
     @staticmethod
     def info(name: str) -> bool:
-        # Note: Origin info command will likely call this just to print to stdout.
-        # However, to be consistent, we might just want to use subprocess.call directly for info/list to inherit stdout.
-        try:
-            subprocess.run(["specify", "extension", "info", name], check=True)
-            return True
-        except Exception:
-            return False
-            
+        return SpecKitWrapper._run_passthrough(["specify", "extension", "info", name])
+
     @staticmethod
     def list() -> bool:
-        try:
-            subprocess.run(["specify", "extension", "list"], check=True)
-            return True
-        except Exception:
-            return False
+        return SpecKitWrapper._run_passthrough(["specify", "extension", "list"])
 
     # --- Preset Methods ---
 
@@ -76,19 +84,11 @@ class SpecKitWrapper:
     @staticmethod
     def preset_disable(name: str) -> bool:
         return SpecKitWrapper._run_cmd(["specify", "preset", "disable", name])
-        
+
     @staticmethod
     def preset_info(name: str) -> bool:
-        try:
-            subprocess.run(["specify", "preset", "info", name], check=True)
-            return True
-        except Exception:
-            return False
-            
+        return SpecKitWrapper._run_passthrough(["specify", "preset", "info", name])
+
     @staticmethod
     def preset_list() -> bool:
-        try:
-            subprocess.run(["specify", "preset", "list"], check=True)
-            return True
-        except Exception:
-            return False
+        return SpecKitWrapper._run_passthrough(["specify", "preset", "list"])

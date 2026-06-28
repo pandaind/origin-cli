@@ -79,13 +79,11 @@ def add_extension(
     Install an Origin extension into the current project.
     """
     from origin_cli.installer.manager import InstallationManager
-    
-    # In this MVP, we treat `source` as a local path.
-    # Remote git URL resolution would happen here before proceeding.
+
     source_path = Path(source).resolve()
-    
     manager = InstallationManager()
     manager.install_extension(source_path=source_path, force=force, dry_run=dry_run)
+
 @app.command(name="remove")
 def remove_extension(
     name: str = typer.Argument(..., help="The name of the extension to remove")

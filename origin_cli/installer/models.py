@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 @dataclass
 class InstallContext:
@@ -10,9 +10,11 @@ class InstallContext:
     force: bool = False
     dry_run: bool = False
     managed_dir: Path = field(init=False)
-    
+
     def __post_init__(self):
-        self.managed_dir = Path(".origin/extensions") / self.extension_name
+        # Always resolve against cwd so the path is always absolute
+        self.managed_dir = Path.cwd() / ".origin" / "extensions" / self.extension_name
+
 
 @dataclass
 class InstallResult:
@@ -21,11 +23,11 @@ class InstallResult:
     replaced: List[str] = field(default_factory=list)
     skipped: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
-    
-    # Specific asset tracking for registry and removal
+
+    # Specific asset tracking for registry and rollback
     mcp_servers: List[str] = field(default_factory=list)
     github_assets: List[str] = field(default_factory=list)
-    speckit_extension_name: str = None
+    speckit_extension_name: Optional[str] = None
 
     def is_success(self) -> bool:
         return len(self.errors) == 0

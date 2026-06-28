@@ -23,14 +23,16 @@ class McpInstaller(AbstractInstaller):
 
         mcp_servers = []
         for msg in all_added + all_replaced:
+            # Messages are formatted as: "mcpServers.<name> in <path>"
             if msg.startswith("mcpServers."):
-                mcp_servers.append(msg.split(" ")[0].replace("mcpServers.", ""))
+                server_key = msg.split(" in ")[0].replace("mcpServers.", "", 1)
+                mcp_servers.append(server_key)
 
         return InstallResult(
-            installer_name="MCP Config", 
-            added=all_added, 
-            replaced=all_replaced, 
-            skipped=all_skipped, 
+            installer_name="MCP Config",
+            added=all_added,
+            replaced=all_replaced,
+            skipped=all_skipped,
             errors=all_errors,
             mcp_servers=list(set(mcp_servers))
         )
