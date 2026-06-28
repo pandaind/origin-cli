@@ -77,6 +77,45 @@ origin init
 
 **Options:**
 - `--ide` (or `-i`): IDE-Only Mode. Bypasses underlying NPM CLI tools and deploys a bundled fleet of Agent Forge personas directly into your global `~/.copilot/agents/` configuration, along with injecting local prompts.
+- `--extension <names>` (or `-e`): Automatically apply integration overrides. Accepts a single extension or a comma/space separated list. Available extensions: `jira`. For example, `--extension jira` injects a `/speckit.taskstoissues` template to natively sync Agent Forge workflows directly with your Jira MCP tools!
+
+### 3. `origin extension`
+
+Origin acts as an orchestrator to manage vendor-neutral AI workspace extensions (packaging GitHub Copilot, Spec Kit, and MCP assets together).
+
+```bash
+# Generate a new modular extension
+origin extension new <name>
+
+# Install an extension into the current project
+origin extension add <path/to/extension>
+
+# Manage extension lifecycle
+origin extension remove <name>
+origin extension enable <name>
+origin extension disable <name>
+origin extension list
+origin extension info <name>
+```
+
+### 4. `origin preset`
+
+Origin securely wraps the native Spec Kit CLI to orchestrate the lifecycle of your custom AI process presets, without overriding Spec Kit's core functionality.
+
+```bash
+# Generate a complete Spec Kit preset structure
+origin preset new <name>
+
+# Install a preset (delegates natively to Spec Kit)
+origin preset add <path/to/preset>
+
+# Manage preset lifecycle
+origin preset remove <name>
+origin preset enable <name>
+origin preset disable <name>
+origin preset list
+origin preset info <name>
+```
 
 ## 🧠 How it Works
 

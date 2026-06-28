@@ -3,7 +3,8 @@ from pathlib import Path
 from origin_cli.integrations import agent_forge, speckit
 
 def init_command(
-    ide: bool = typer.Option(False, "--ide", "-i", help="IDE-only mode: do not run agent-forge init, use local Prompts")
+    ide: bool = typer.Option(False, "--ide", "-i", help="IDE-only mode: do not run agent-forge init, use local Prompts"),
+    extension: str = typer.Option(None, "--extension", "-e", help="Apply integration extensions (e.g., 'jira')")
 ):
     """
     Initializes a project with Agent Forge and Spec Kit workflows.
@@ -17,6 +18,9 @@ def init_command(
         agent_forge.init()
         
     speckit.init()
-    speckit.override_speckit_tasks()
+    speckit.inject_core_overrides()
     
+    if extension:
+        speckit.apply_extensions(extension)
+        
     typer.secho("Project initialization complete!", fg=typer.colors.GREEN, bold=True)
