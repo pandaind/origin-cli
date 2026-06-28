@@ -77,7 +77,6 @@ origin init
 
 **Options:**
 - `--ide` (or `-i`): IDE-Only Mode. Bypasses underlying NPM CLI tools and deploys a bundled fleet of Agent Forge personas directly into your global `~/.copilot/agents/` configuration, along with injecting local prompts.
-- `--preset <names>` (or `-p`): Automatically apply integration overrides. Accepts a single preset or a comma/space separated list. Available presets: `jira`, `git`, and `jenkins`. For example, `--preset "jira git"` injects multiple templates to sync Agent Forge workflows directly with your external MCP tools!
 
 ## 🧠 How it Works
 
