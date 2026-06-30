@@ -1,19 +1,12 @@
 import typer
-import subprocess
-import sys
 from pathlib import Path
 from origin_cli.utils import run_command
 from origin_cli.constants import FLEET_DELEGATION_PROMPT, IMPLEMENT_OVERRIDE_PROMPT, JIRA_EXTENSION_PROMPT
 
 def install():
-    """Install specify-cli globally via uv."""
-    typer.echo("Installing specify-cli globally via uv...")
-    try:
-        subprocess.run(["uv", "--version"], check=True, stdout=subprocess.DEVNULL)
-        run_command(["uv", "tool", "install", "specify-cli"])
-    except FileNotFoundError:
-        typer.secho("uv is not installed. Falling back to pip for specify-cli...", fg=typer.colors.YELLOW)
-        run_command([sys.executable, "-m", "pip", "install", "specify-cli"])
+    """Install specify-cli via pipx."""
+    typer.echo("Installing specify-cli via pipx...")
+    run_command(["pipx", "install", "specify-cli"])
 
 def init():
     """Run specify init."""
