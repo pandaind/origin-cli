@@ -5,9 +5,9 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from origin_cli.hub.auth import get_api_key
+from origin_cli.hub.auth import get_api_key, get_hub_url
 
-DEFAULT_HUB_URL = os.environ.get("ORIGIN_HUB_URL", "http://127.0.0.1:8000")
+DEFAULT_HUB_URL = get_hub_url() or os.environ.get("ORIGIN_HUB_URL", "http://127.0.0.1:8000")
 
 
 class HubAuthError(Exception):

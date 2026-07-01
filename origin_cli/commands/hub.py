@@ -7,13 +7,25 @@ from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from origin_cli.hub.auth import delete_api_key, save_api_key
+from origin_cli.hub.auth import delete_api_key, save_api_key, save_hub_url
 from origin_cli.hub.client import HubClient, HubAuthError, HubNotFoundError
 from origin_cli.hub.packager import create_asset_bundle, PackagerError
 from origin_cli.hub.installer import install_asset_bundle, InstallerError
 
 app = typer.Typer(help="Publish and discover assets on the Origin Hub")
 console = Console()
+
+
+@app.command(name="set-url")
+def set_url(url: str = typer.Argument(..., help="The full URL of the Hub Registry server")):
+    """Configure a persistent custom Hub URL."""
+    url = url.rstrip("/")
+    if not url.startswith("http"):
+        typer.secho("URL must start with http:// or https://", fg=typer.colors.RED)
+        raise typer.Exit(1)
+        
+    save_hub_url(url)
+    typer.secho(f"Hub URL permanently set to: {url}", fg=typer.colors.GREEN)
 
 
 @app.command()
