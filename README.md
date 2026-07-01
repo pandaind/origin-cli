@@ -9,7 +9,7 @@
 ## 📖 Table of Contents
 - [Overview](#-overview)
 - [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
+- [Installation](./INSTALL.md) ← full cross-platform guide
 - [Usage](#-usage)
   - [origin setup](#1-origin-setup)
   - [origin init](#2-origin-init)
