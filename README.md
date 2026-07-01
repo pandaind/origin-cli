@@ -52,17 +52,36 @@ The CLI exposes two primary commands to get your AI environment up and running i
 ### 1. `origin setup`
 
 This command bootstraps your host machine with the necessary underlying tools.
+It auto-detects and installs any missing prerequisites (`node`, `npm`, `pipx`) for your platform.
 
 ```bash
 origin setup
 ```
-**What it does:**
-- Installs `@github/copilot` globally via `npm` (required by agent-forge).
-- Installs `@agent-forge-copilot/cli` globally via `npm`.
-- Installs `specify-cli` globally via `uv` (falling back to `pip` if `uv` isn't found).
 
-**Options:**
-- `--no-copilot`: Skip the NPM installations of GitHub Copilot CLI and Agent Forge if you already have them or prefer to manage them manually. You will be prompted interactively by default if you do not supply this flag.
+**Interactive flow:**
+1. **Mode selection** — choose spec-driven or agent-driven
+2. **Agent Forge** — install `@github/copilot` + `@agent-forge-copilot/cli` via npm (optional)
+3. **Spec Kit** — install `specify-cli` via pipx (spec-driven mode only)
+4. **Headroom** — enable transparent prompt compression (optional)
+
+**Headroom-AI prompt compression:**
+
+When enabled, `headroom wrap` intercepts every LLM call made by `copilot` and `forge`
+and compresses the full context window (file reads, tool outputs, previous turns)
+before it reaches the model. Typical reduction: **60–95% fewer tokens**.
+
+```bash
+origin setup --headroom    # enable compression
+origin setup --no-headroom # skip
+```
+
+**All flags (non-interactive):**
+
+| Flag | Effect |
+|------|--------|
+| `--spec` / `--no-spec` | Force spec-driven or agent-driven mode |
+| `--copilot` / `--no-copilot` | Install or skip GitHub Copilot CLI + Agent Forge |
+| `--headroom` / `--no-headroom` | Enable or skip headroom-ai prompt compression |
 
 ### 2. `origin init`
 

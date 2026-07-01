@@ -65,8 +65,9 @@ Bootstrap your machine with the required AI development tools:
 origin setup
 ```
 
-You will be prompted to choose a development mode:
+`origin setup` walks you through four steps interactively:
 
+**Step 1 — Development mode**
 ```
 Select your development mode:
   [1] Spec-driven  — Agent Forge + Spec Kit (recommended for full workflows)
@@ -75,17 +76,40 @@ Select your development mode:
 Enter your choice [1]:
 ```
 
-`origin setup` will then automatically detect and install any missing prerequisites
-(`node`, `npm`, and `pipx` if not already present) for the selected mode.
+**Step 2 — Agent Forge** *(optional)*
+```
+Install GitHub Copilot CLI and Agent Forge globally via npm? [Y/n]:
+```
 
-**Non-interactive flags:**
+**Step 3 — Spec Kit** *(spec-driven mode only)*  
+Installs `specify-cli` via pipx automatically.
+
+**Step 4 — Headroom-AI prompt compression** *(optional)*
+```
+Enable prompt compression via headroom-ai?
+  (Wraps copilot + forge to compress file reads, tool outputs,
+   and every LLM call. Typically 60-95% token reduction.) [Y/n]:
+```
+
+When enabled, `headroom wrap` intercepts every API call made by `copilot` and `forge`
+and compresses the full context window before it hits the model — including file reads,
+tool outputs, and prior turns. Originals are cached locally; the model can retrieve
+them on demand. No code changes required.
+
+---
+
+**Non-interactive flags — run fully silent:**
 
 | Flag | Effect |
 |------|--------|
-| `--spec` | Force spec-driven mode (no prompt) |
-| `--no-spec` | Force agent-driven mode (no prompt) |
-| `--copilot` | Always install GitHub Copilot CLI + Agent Forge |
-| `--no-copilot` | Skip GitHub Copilot CLI + Agent Forge install |
+| `--spec` / `--no-spec` | Force spec-driven or agent-driven mode |
+| `--copilot` / `--no-copilot` | Install or skip GitHub Copilot CLI + Agent Forge |
+| `--headroom` / `--no-headroom` | Enable or skip headroom-ai prompt compression |
+
+Example — fully automated spec-driven setup with compression:
+```bash
+origin setup --spec --copilot --headroom
+```
 
 ---
 
@@ -101,4 +125,10 @@ origin --help
 
 ```bash
 pipx uninstall origin-cli
+
+# Also remove headroom wraps if you enabled them:
+headroom unwrap copilot
+headroom unwrap forge
+pipx uninstall headroom-ai
 ```
+
