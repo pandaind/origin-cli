@@ -57,4 +57,45 @@ def detect_tech_stack(project_dir: Path) -> list[str]:
     if (project_dir / "Cargo.toml").exists():
         tags.add("rust")
         
+    # 5. Check Java / JVM (Maven or Gradle)
+    pom_xml = project_dir / "pom.xml"
+    build_gradle = project_dir / "build.gradle"
+    build_gradle_kts = project_dir / "build.gradle.kts"
+    if pom_xml.exists() or build_gradle.exists() or build_gradle_kts.exists():
+        tags.add("java")
+        
+        # Check for Spring Boot
+        content = ""
+        if pom_xml.exists(): content += pom_xml.read_text().lower()
+        if build_gradle.exists(): content += build_gradle.read_text().lower()
+        if build_gradle_kts.exists(): content += build_gradle_kts.read_text().lower()
+        if "spring-boot" in content or "springframework" in content:
+            tags.add("spring-boot")
+
+    # 6. Check Ruby
+    if (project_dir / "Gemfile").exists():
+        tags.add("ruby")
+        if "rails" in (project_dir / "Gemfile").read_text().lower():
+            tags.add("rails")
+
+    # 7. Check PHP
+    if (project_dir / "composer.json").exists():
+        tags.add("php")
+        try:
+            php_data = json.loads((project_dir / "composer.json").read_text())
+            php_deps = str(php_data.get("require", {}))
+            if "laravel" in php_deps: tags.add("laravel")
+            if "symfony" in php_deps: tags.add("symfony")
+        except Exception:
+            pass
+
+    # 8. Check C# / .NET
+    if list(project_dir.glob("*.csproj")) or list(project_dir.glob("*.sln")):
+        tags.add("csharp")
+        tags.add("dotnet")
+
+    # 9. Check C++
+    if (project_dir / "CMakeLists.txt").exists() or (project_dir / "Makefile").exists():
+        tags.add("cpp")
+
     return sorted(list(tags))
