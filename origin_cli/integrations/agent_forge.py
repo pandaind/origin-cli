@@ -48,8 +48,8 @@ def init_ide():
         copied_count += 1
         
         # 2. Validate YAML frontmatter
-        content = dest_file.read_text()
-        frontmatter_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+        content = dest_file.read_text(encoding="utf-8")
+        frontmatter_match = re.match(r"^---\r?\n(.*?)\r?\n---", content, re.DOTALL)
         if frontmatter_match:
             frontmatter = frontmatter_match.group(1)
             # check if it contains name: "..." or name: something

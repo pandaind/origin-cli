@@ -263,6 +263,10 @@ def _verify_node() -> None:
 
 def _run(cmd: list, error_msg: str, required: bool = True) -> None:
     """Run a subprocess command, printing a clear error on failure."""
+    exe = shutil.which(cmd[0])
+    if exe:
+        cmd = [exe] + cmd[1:]
+        
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:

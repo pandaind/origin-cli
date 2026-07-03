@@ -1,9 +1,14 @@
 import subprocess
 import sys
 import typer
+import shutil
 
 def run_command(cmd: list[str], shell: bool = False, check: bool = True):
     """Helper to run a subprocess command and stream output."""
+    exe = shutil.which(cmd[0])
+    if exe:
+        cmd = [exe] + cmd[1:]
+        
     try:
         subprocess.run(cmd, shell=shell, check=check)
     except subprocess.CalledProcessError as e:
