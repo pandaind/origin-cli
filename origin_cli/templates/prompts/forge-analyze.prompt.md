@@ -11,6 +11,7 @@ Before generating the setup from scratch, you MUST use your terminal tools to ch
 1. Run `origin hub search <framework>` to find matching assets.
 2. If you find highly relevant assets, run `origin hub install <name>` to download them into this project.
 3. Use those installed templates as the baseline, and adapt them to match the specific patterns you scanned in this codebase.
+4. **IMPORTANT**: Completely IGNORE the `.specify` directory if it exists in the project. Do NOT read it, and do NOT attempt to recreate or port its templates into `.github`.
 
 Execute the following tasks in parallel:
 

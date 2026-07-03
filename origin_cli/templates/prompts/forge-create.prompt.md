@@ -12,6 +12,7 @@ Before writing any files from scratch, you MUST use your terminal tools to searc
 1. Run `origin hub search <tech>` for the core technologies mentioned.
 2. If you find highly relevant assets, run `origin hub install <name>` to download them. 
 3. Use those installed templates as the foundation for your work.
+4. **IMPORTANT**: Completely IGNORE the `.specify` directory if it exists in the project. Do NOT read it, and do NOT attempt to recreate or port its templates into `.github`.
 
 Execute the following tasks in parallel to build the agent factory:
 
