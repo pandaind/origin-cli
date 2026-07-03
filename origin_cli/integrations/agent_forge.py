@@ -10,6 +10,11 @@ def install():
     typer.echo("Installing @agent-forge-copilot/cli globally via npm...")
     run_command(["npm", "install", "-g", "@agent-forge-copilot/cli"])
 
+def uninstall():
+    """Uninstall global npm dependencies."""
+    typer.echo("Uninstalling @github/copilot and @agent-forge-copilot/cli...")
+    run_command(["npm", "uninstall", "-g", "@github/copilot", "@agent-forge-copilot/cli"], check=False)
+
 def init():
     """Run forge init."""
     typer.echo("Authenticating GitHub Copilot CLI...")

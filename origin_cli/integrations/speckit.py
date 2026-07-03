@@ -8,6 +8,11 @@ def install():
     typer.echo("Installing specify-cli via pipx...")
     run_command(["pipx", "install", "specify-cli"])
 
+def uninstall():
+    """Uninstall specify-cli."""
+    typer.echo("Uninstalling specify-cli via pipx...")
+    run_command(["pipx", "uninstall", "specify-cli"], check=False)
+
 def init():
     """Run specify init."""
     typer.echo("Running 'specify init . --integration copilot'...")

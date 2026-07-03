@@ -124,11 +124,9 @@ origin --help
 ## Uninstall
 
 ```bash
+# 1. Remove all global components (Copilot CLI, Spec Kit, Headroom, etc.)
+origin reset
+
+# 2. Uninstall the Origin CLI itself
 pipx uninstall origin-cli
-
-# Also remove headroom wraps if you enabled them:
-headroom unwrap copilot
-headroom unwrap forge
-pipx uninstall headroom-ai
 ```
-

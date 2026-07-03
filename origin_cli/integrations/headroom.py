@@ -13,6 +13,12 @@ def install() -> None:
     typer.echo("Installing headroom-ai via pipx...")
     run_command(["pipx", "install", "headroom-ai"])
 
+def uninstall() -> None:
+    """Uninstall headroom-ai."""
+    typer.echo("Uninstalling headroom-ai via pipx...")
+    unwrap_agents()
+    run_command(["pipx", "uninstall", "headroom-ai"], check=False)
+
 
 def is_installed() -> bool:
     """Return True if the headroom binary is available on PATH."""
