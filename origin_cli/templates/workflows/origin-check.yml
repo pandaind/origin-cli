@@ -1,0 +1,29 @@
+name: Origin Check
+
+on:
+  pull_request:
+    paths:
+      - '.github/**/*.agent.md'
+      - '.github/**/*.instructions.md'
+      - '.github/**/*.prompt.md'
+      - '.copilot/**/*.agent.md'
+
+jobs:
+  validate-forge-files:
+    name: Validate Agent Forge Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Origin CLI
+        run: pip install origin-cli
+
+      - name: Run origin check
+        run: origin check . --strict

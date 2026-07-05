@@ -2,12 +2,18 @@ import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote
 
 import httpx
 
 from origin_cli.hub.auth import get_api_key, get_hub_url
 
 DEFAULT_HUB_URL = get_hub_url() or os.environ.get("ORIGIN_HUB_URL", "http://127.0.0.1:8000")
+
+
+def _encode_name(name: str) -> str:
+    """URL-encode asset names so scoped names like @acme/agent work in path segments."""
+    return quote(name, safe="")
 
 
 class HubAuthError(Exception):
@@ -101,15 +107,24 @@ class HubClient:
     def get_asset(self, name: str) -> Dict[str, Any]:
         """Fetches metadata for a specific asset."""
         with httpx.Client() as client:
-            resp = client.get(f"{self.base_url}/assets/{name}", headers=self._get_headers())
+            resp = client.get(f"{self.base_url}/assets/{_encode_name(name)}", headers=self._get_headers())
             return self._handle_response(resp)
 
     def download_bundle(self, name: str, version: str) -> bytes:
         """Downloads the .originpkg bundle."""
         with httpx.Client() as client:
             resp = client.get(
-                f"{self.base_url}/assets/{name}/{version}/bundle",
+                f"{self.base_url}/assets/{_encode_name(name)}/{version}/bundle",
                 headers=self._get_headers(),
                 timeout=60.0
+            )
+            return self._handle_response(resp)
+
+    def get_asset_versions(self, name: str) -> List[Dict[str, Any]]:
+        """Fetches all published versions for an asset."""
+        with httpx.Client() as client:
+            resp = client.get(
+                f"{self.base_url}/assets/{_encode_name(name)}/versions",
+                headers=self._get_headers()
             )
             return self._handle_response(resp)

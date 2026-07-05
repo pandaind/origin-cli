@@ -10,7 +10,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from origin_cli.hub.auth import delete_api_key, save_api_key, save_hub_url
 from origin_cli.hub.client import HubClient, HubAuthError, HubNotFoundError
 from origin_cli.hub.packager import create_asset_bundle, PackagerError
-from origin_cli.hub.installer import install_asset_bundle, InstallerError
+from origin_cli.hub.installer import install_asset_bundle, record_install, get_installed_assets, InstallerError
 
 app = typer.Typer(help="Publish and discover assets on the Origin Hub")
 console = Console()
@@ -175,6 +175,7 @@ def install(
         install_asset_bundle(bundle_bytes, target_project_dir=Path.cwd())
         
         typer.secho(f"✔ Successfully installed {name} v{version}!", fg=typer.colors.GREEN)
+        record_install(name, version, asset.get("type", "unknown"), str(Path.cwd() / ".github"))
         
     except HubNotFoundError:
         typer.secho(f"Asset '{name}' not found on the Hub.", fg=typer.colors.RED)
@@ -185,14 +186,78 @@ def install(
 
 
 @app.command()
-def discover():
-    """Scan the project and auto-install recommended assets."""
-    from origin_cli.hub.discovery import detect_tech_stack
+def update():
+    """Check for updates to installed Hub assets and upgrade if available."""
+    installed = get_installed_assets()
+    if not installed:
+        typer.secho("No Hub assets are tracked in this project (.origin/installed.json not found).", fg=typer.colors.YELLOW)
+        return
+        
+    client = HubClient()
+    updates_available = []
     
+    with console.status("Checking for updates..."):
+        for name, info in installed.items():
+            current_version = info.get("version", "unknown")
+            try:
+                versions = client.get_asset_versions(name)
+                if versions:
+                    latest = versions[0]["version"]
+                    if latest != current_version:
+                        updates_available.append((name, current_version, latest))
+            except Exception:
+                pass
+    
+    if not updates_available:
+        typer.secho("All installed assets are up to date!", fg=typer.colors.GREEN)
+        return
+    
+    table = Table(title="Updates Available")
+    table.add_column("Asset", style="cyan")
+    table.add_column("Installed", style="red")
+    table.add_column("Latest", style="green")
+    for name, current, latest in updates_available:
+        table.add_row(name, current, latest)
+    console.print(table)
+    typer.echo()
+    
+    for name, current_version, latest_version in updates_available:
+        if typer.confirm(f"Upgrade {name} from v{current_version} → v{latest_version}?", default=True):
+            try:
+                bundle_bytes = client.download_bundle(name, latest_version)
+                install_asset_bundle(bundle_bytes, target_project_dir=Path.cwd())
+                asset_info = installed[name]
+                record_install(name, latest_version, asset_info.get("type", "unknown"), asset_info.get("install_path", ""))
+                typer.secho(f"  ✔ {name} upgraded to v{latest_version}", fg=typer.colors.GREEN)
+            except Exception as e:
+                typer.secho(f"  ✖ Failed to upgrade {name}: {e}", fg=typer.colors.RED)
+        else:
+            typer.secho(f"  Skipped {name}.", fg=typer.colors.YELLOW)
+
+
+@app.command()
+def discover(
+    deep: bool = typer.Option(False, "--deep", help="Use LLM to deeply analyze source code for richer recommendations."),
+):
+    """Scan the project and auto-install recommended assets."""
     project_dir = Path.cwd()
     
-    with console.status("Scanning project tech stack..."):
-        tech_tags = detect_tech_stack(project_dir)
+    if deep:
+        from origin_cli.hub.llm_discovery import discover_with_llm
+        typer.secho("Running deep LLM analysis (this may take a few seconds)...", fg=typer.colors.CYAN)
+        try:
+            result = discover_with_llm(project_dir)
+            tech_tags = result.get("tags", [])
+            summary = result.get("summary", "")
+            if summary:
+                typer.secho(f"Project summary: {summary}", fg=typer.colors.BLUE)
+        except RuntimeError as e:
+            typer.secho(f"Deep discovery failed: {e}", fg=typer.colors.RED)
+            raise typer.Exit(1)
+    else:
+        from origin_cli.hub.discovery import detect_tech_stack
+        with console.status("Scanning project tech stack..."):
+            tech_tags = detect_tech_stack(project_dir)
         
     if not tech_tags:
         typer.secho("No recognizable tech stack found. Cannot make recommendations.", fg=typer.colors.YELLOW)

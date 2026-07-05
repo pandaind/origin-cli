@@ -1,9 +1,12 @@
 import json
 import shutil
 import tarfile
+from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Optional
+from typing import Dict, List, Optional
+
+INSTALL_MANIFEST = Path(".origin") / "installed.json"
 
 
 class InstallerError(Exception):
@@ -75,3 +78,36 @@ def _copy_files(src_dir: Path, dest_dir: Path, files: list[str]) -> None:
                 shutil.copytree(src_file, dest_dir / f, dirs_exist_ok=True)
             else:
                 shutil.copy2(src_file, dest_dir / f)
+
+
+def record_install(name: str, version: str, asset_type: str, install_path: str, project_dir: Optional[Path] = None) -> None:
+    """Record a successful asset installation to .origin/installed.json."""
+    manifest_path = (project_dir or Path.cwd()) / INSTALL_MANIFEST
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    data: Dict[str, dict] = {}
+    if manifest_path.exists():
+        try:
+            data = json.loads(manifest_path.read_text())
+        except Exception:
+            pass
+    
+    data[name] = {
+        "version": version,
+        "type": asset_type,
+        "install_path": install_path,
+        "installed_at": datetime.utcnow().isoformat(),
+    }
+    manifest_path.write_text(json.dumps(data, indent=2))
+
+
+def get_installed_assets(project_dir: Optional[Path] = None) -> Dict[str, dict]:
+    """Read the local installed.json manifest. Returns an empty dict if not found."""
+    manifest_path = (project_dir or Path.cwd()) / INSTALL_MANIFEST
+    if not manifest_path.exists():
+        return {}
+    try:
+        return json.loads(manifest_path.read_text())
+    except Exception:
+        return {}
+
