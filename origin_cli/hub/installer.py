@@ -101,12 +101,7 @@ def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path]
             except json.JSONDecodeError:
                 pass
 
-        if asset_type == "workflow":
-            dest_dir = target_project_dir / ".specify" / "templates"
-            _copy_files(tmp_path, dest_dir, files)
-            return asset_type, str(dest_dir)
-            
-        elif asset_type == "extension":
+        if asset_type == "extension":
             dest_dir = target_project_dir / ".origin" / "extensions" / name
             if dest_dir.exists():
                 shutil.rmtree(dest_dir)
@@ -114,7 +109,7 @@ def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path]
             return asset_type, str(dest_dir)
             
         else:
-            # Per-file dynamic routing based on extensions
+            # workflow, agent, skill, instruction — all route per-file by extension
             installed_paths = set()
             for f in files:
                 dest_dir = get_dest_dir(f, target_ide, is_global, target_project_dir)

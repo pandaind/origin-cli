@@ -1,0 +1,13 @@
+{
+  "name": "sre-workflow",
+  "version": "1.0.0",
+  "type": "workflow",
+  "description": "A complete SRE workflow with agent, instructions and skill for incident response and reliability engineering.",
+  "tags": ["sre", "incident", "reliability", "devops"],
+  "author": "testuser1",
+  "files": [
+    "sre-agent.agent.md",
+    "sre-runbook.instructions.md",
+    "sre-postmortem.skill.md"
+  ]
+}
