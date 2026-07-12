@@ -38,14 +38,15 @@ def create_asset_bundle(source_dir: Path) -> tuple[Path, Dict[str, Any]]:
     
     bundle_path = Path(tmp_file.name)
 
+    # Directories and files to exclude from the bundle
+    IGNORE_NAMES = {".git", ".specify", ".origin", "__pycache__", "node_modules", ".venv"}
+
     # Tar and gzip the directory contents
     try:
         with tarfile.open(bundle_path, "w:gz") as tar:
             for item in source_dir.iterdir():
-                # Avoid packaging hidden git/system files, but keep .origin etc if they are inside
-                if item.name == ".git":
+                if item.name in IGNORE_NAMES:
                     continue
-                # Add item relative to the root of the tarball
                 tar.add(item, arcname=item.name)
     except Exception as e:
         if bundle_path.exists():

@@ -10,7 +10,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from origin_cli.hub.auth import delete_api_key, save_api_key, save_hub_url
 from origin_cli.hub.client import HubClient, HubAuthError, HubNotFoundError
 from origin_cli.hub.packager import create_asset_bundle, PackagerError
-from origin_cli.hub.installer import install_asset_bundle, record_install, get_installed_assets, InstallerError
+from origin_cli.hub.installer import install_asset_bundle, record_install, get_installed_assets, InstallerError, INSTALL_MANIFEST
 
 app = typer.Typer(help="Publish and discover assets on the Origin Hub")
 console = Console()
@@ -185,6 +185,72 @@ def install(
     except Exception as e:
         typer.secho(f"Install failed: {e}", fg=typer.colors.RED)
 
+@app.command(name="list")
+def list_installed():
+    """Show all Hub assets installed in the current project."""
+    installed = get_installed_assets()
+    if not installed:
+        typer.secho("No Hub assets installed in this project.", fg=typer.colors.YELLOW)
+        return
+    
+    table = Table(title="Installed Hub Assets")
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Version", style="green")
+    table.add_column("Type", style="magenta")
+    table.add_column("Install Path", style="blue")
+    table.add_column("Installed At", style="white")
+    
+    for name, info in installed.items():
+        table.add_row(
+            name,
+            info.get("version", "?"),
+            info.get("type", "?"),
+            info.get("install_path", "?"),
+            info.get("installed_at", "?")[:19],  # trim microseconds
+        )
+    console.print(table)
+
+
+@app.command()
+def uninstall(
+    name: str = typer.Argument(..., help="Name of the installed asset to remove"),
+    force: bool = typer.Option(False, "--force", "-f", help="Bypass confirmation prompt")
+):
+    """Remove an installed Hub asset from the project."""
+    import json, shutil
+    from pathlib import Path
+
+    installed = get_installed_assets()
+    if name not in installed:
+        typer.secho(f"Asset '{name}' is not tracked in this project.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    
+    info = installed[name]
+    install_path = info.get("install_path", "")
+    
+    if not force:
+        typer.confirm(f"Remove '{name}' and its files from '{install_path}'?", abort=True)
+    
+    # Remove files that belong to this asset
+    path = Path(install_path)
+    removed = 0
+    if path.exists() and path.is_dir():
+        # Try to find files that match this asset's name prefix
+        for f in path.iterdir():
+            if f.stem.startswith(name.replace("-", ".")) or f.name.startswith(name):
+                f.unlink()
+                removed += 1
+    
+    # Remove from installed.json
+    del installed[name]
+    manifest_path = Path.cwd() / INSTALL_MANIFEST
+    manifest_path.write_text(json.dumps(installed, indent=2))
+    
+    if removed:
+        typer.secho(f"✔ Removed {removed} file(s) for '{name}' from '{install_path}'.", fg=typer.colors.GREEN)
+    else:
+        typer.secho(f"✔ Removed '{name}' from tracking (files may have already been deleted).", fg=typer.colors.GREEN)
+
 
 @app.command()
 def update():
@@ -320,7 +386,8 @@ def discover(
         try:
             typer.echo(f"\nInstalling [cyan]{name}[/cyan]...")
             bundle_bytes = client.download_bundle(name, version)
-            install_asset_bundle(bundle_bytes, target_project_dir=project_dir)
+            asset_type, dest_dir = install_asset_bundle(bundle_bytes, target_project_dir=project_dir, is_global=False)
+            record_install(name, version, asset_type, dest_dir)
             typer.secho(f"✔ Successfully installed {name}", fg=typer.colors.GREEN)
         except Exception as e:
             typer.secho(f"Failed to install {name}: {e}", fg=typer.colors.RED)

@@ -36,16 +36,22 @@ def init_command(
     config_file.write_text(json.dumps(config, indent=2))
     typer.secho(f"Target IDE configured as: {ide.value}", fg=typer.colors.CYAN)
     
+    COPILOT_IDES = {TargetIDE.copilot, TargetIDE.vscode}
+    
     if ide_only:
         typer.secho("Initializing IDE-only local files...", fg=typer.colors.CYAN)
         agent_forge.init_ide()
     else:
         agent_forge.init()
         
-    speckit.init()
-    speckit.inject_core_overrides()
-    
-    if extension:
-        speckit.apply_extensions(extension)
+    # Speckit is a GitHub Copilot-specific toolchain — only run for copilot/vscode
+    if ide in COPILOT_IDES:
+        speckit.init()
+        speckit.inject_core_overrides()
+        
+        if extension:
+            speckit.apply_extensions(extension)
+    else:
+        typer.secho(f"Skipping Speckit setup (not required for {ide.value}).", fg=typer.colors.YELLOW)
         
     typer.secho("Project initialization complete!", fg=typer.colors.GREEN, bold=True)

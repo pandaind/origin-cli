@@ -37,7 +37,7 @@ def check_command(
         typer.secho(f"Path does not exist: {root}", fg=typer.colors.RED)
         raise typer.Exit(1)
 
-    patterns = ["**/*.agent.md", "**/*.instructions.md", "**/*.prompt.md"]
+    patterns = ["**/*.agent.md", "**/*.instructions.md", "**/*.prompt.md", "**/*.skill.md"]
     ignore_dirs = {".venv", "node_modules", ".git", "__pycache__"}
 
     files = []
