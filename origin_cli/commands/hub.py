@@ -145,7 +145,8 @@ def publish(path: str = typer.Argument(..., help="Path to the directory containi
 @app.command()
 def install(
     name: str = typer.Argument(..., help="Name of the asset (e.g. forge-frontend-expert)"),
-    version: Optional[str] = typer.Option(None, help="Specific version to install (defaults to latest)")
+    version: Optional[str] = typer.Option(None, help="Specific version to install (defaults to latest)"),
+    is_global: bool = typer.Option(False, "--global", "-g", help="Install globally in your home directory")
 ):
     """Download and install an asset from the Hub."""
     client = HubClient()
@@ -172,10 +173,10 @@ def install(
             
         # 3. Install
         typer.echo(f"Installing {name}...")
-        install_asset_bundle(bundle_bytes, target_project_dir=Path.cwd())
+        asset_type, dest_dir = install_asset_bundle(bundle_bytes, target_project_dir=Path.cwd(), is_global=is_global)
         
         typer.secho(f"✔ Successfully installed {name} v{version}!", fg=typer.colors.GREEN)
-        record_install(name, version, asset.get("type", "unknown"), str(Path.cwd() / ".github"))
+        record_install(name, version, asset_type, dest_dir)
         
     except HubNotFoundError:
         typer.secho(f"Asset '{name}' not found on the Hub.", fg=typer.colors.RED)
@@ -225,9 +226,8 @@ def update():
         if typer.confirm(f"Upgrade {name} from v{current_version} → v{latest_version}?", default=True):
             try:
                 bundle_bytes = client.download_bundle(name, latest_version)
-                install_asset_bundle(bundle_bytes, target_project_dir=Path.cwd())
-                asset_info = installed[name]
-                record_install(name, latest_version, asset_info.get("type", "unknown"), asset_info.get("install_path", ""))
+                asset_type, dest_dir = install_asset_bundle(bundle_bytes, target_project_dir=Path.cwd(), is_global=False)
+                record_install(name, latest_version, asset_type, dest_dir)
                 typer.secho(f"  ✔ {name} upgraded to v{latest_version}", fg=typer.colors.GREEN)
             except Exception as e:
                 typer.secho(f"  ✖ Failed to upgrade {name}: {e}", fg=typer.colors.RED)

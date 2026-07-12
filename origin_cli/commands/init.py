@@ -1,9 +1,17 @@
+import json
 import typer
+from enum import Enum
 from pathlib import Path
 from origin_cli.integrations import agent_forge, speckit
 
+class TargetIDE(str, Enum):
+    copilot = "copilot"
+    claude = "claude"
+    cursor = "cursor"
+
 def init_command(
-    ide: bool = typer.Option(False, "--ide", "-i", help="IDE-only mode: do not run agent-forge init, use local Prompts"),
+    ide: TargetIDE = typer.Option(TargetIDE.copilot, "--ide", "-i", help="Target IDE for Origin CLI integration (copilot, claude, cursor)"),
+    ide_only: bool = typer.Option(False, "--ide-only", help="Do not run agent-forge init, just configure the IDE."),
     extension: str = typer.Option(None, "--extension", "-e", help="Apply integration extensions (e.g., 'jira')")
 ):
     """
@@ -11,7 +19,23 @@ def init_command(
     """
     typer.secho("Initializing Origin CLI Project...", fg=typer.colors.CYAN)
     
-    if ide:
+    # Save configuration
+    config_dir = Path.cwd() / ".origin"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    config_file = config_dir / "config.json"
+    
+    config = {}
+    if config_file.exists():
+        try:
+            config = json.loads(config_file.read_text())
+        except json.JSONDecodeError:
+            pass
+            
+    config["ide"] = ide.value
+    config_file.write_text(json.dumps(config, indent=2))
+    typer.secho(f"Target IDE configured as: {ide.value}", fg=typer.colors.CYAN)
+    
+    if ide_only:
         typer.secho("Initializing IDE-only local files...", fg=typer.colors.CYAN)
         agent_forge.init_ide()
     else:

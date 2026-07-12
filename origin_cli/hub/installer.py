@@ -13,7 +13,49 @@ class InstallerError(Exception):
     pass
 
 
-def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path] = None) -> tuple[str, str]:
+def get_dest_dir(filename: str, target_ide: str, is_global: bool, target_project_dir: Path) -> Optional[Path]:
+    ext = Path(filename).suffixes
+    full_ext = "".join(ext).lower()
+    
+    home = Path.home()
+    
+    if full_ext.endswith(".agent.md"):
+        if target_ide == "copilot":
+            return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
+        elif target_ide == "claude":
+            return home / ".claude" / "agents" if is_global else target_project_dir / ".claude" / "agents"
+        elif target_ide == "cursor":
+            # Fallback to rules for Cursor since agents are not officially supported
+            return target_project_dir / ".cursor" / "rules"
+            
+    elif full_ext.endswith(".instructions.md") or full_ext.endswith(".rule.md"):
+        if target_ide == "copilot":
+            return home / ".copilot" / "instructions" if is_global else target_project_dir / ".github" / "instructions"
+        elif target_ide == "claude":
+            return home / ".claude" / "rules" if is_global else target_project_dir / ".claude" / "rules"
+        elif target_ide == "cursor":
+            return target_project_dir / ".cursor" / "rules"
+            
+    elif full_ext.endswith(".skill.md"):
+        if target_ide == "copilot":
+            return home / ".copilot" / "skills" if is_global else target_project_dir / ".github" / "skills"
+        elif target_ide == "claude":
+            return home / ".claude" / "skills" if is_global else target_project_dir / ".claude" / "skills"
+        elif target_ide == "cursor":
+            return target_project_dir / ".cursor" / "skills"
+            
+    elif full_ext.endswith(".prompt.md") or full_ext.endswith(".command.md"):
+        if target_ide == "copilot":
+            return target_project_dir / ".github" / "prompts"
+        elif target_ide == "claude":
+            return home / ".claude" / "commands" if is_global else target_project_dir / ".claude" / "commands"
+        elif target_ide == "cursor":
+            return home / ".cursor" / "commands" if is_global else target_project_dir / ".cursor" / "commands"
+            
+    return target_project_dir / ".origin" / "misc"
+
+
+def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path] = None, is_global: bool = False) -> tuple[str, str]:
     """
     Extracts an .originpkg bundle from bytes in memory, reads its manifest, 
     and copies it to the appropriate local paths.
@@ -41,43 +83,42 @@ def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path]
         asset_type = manifest.get("type")
         files = manifest.get("files", [])
         name = manifest.get("name")
-        install_dir = manifest.get("install_dir")
 
         if not asset_type:
             raise InstallerError("Manifest missing 'type'")
 
-        # If manifest specifies install_dir, use it. Otherwise, use type-based defaults.
-        if install_dir:
-            # Prevent absolute paths or path traversal for security
-            clean_install_dir = Path(install_dir).resolve().relative_to(Path.cwd().resolve()) if Path(install_dir).is_absolute() else Path(install_dir)
-            if ".." in clean_install_dir.parts:
-                raise InstallerError(f"Invalid install_dir '{install_dir}': Path traversal not allowed.")
-            dest_dir = target_project_dir / clean_install_dir
-            _copy_files(tmp_path, dest_dir, files)
+        # Load configured IDE
+        target_ide = "copilot"
+        config_file = target_project_dir / ".origin" / "config.json"
+        if config_file.exists():
+            try:
+                config = json.loads(config_file.read_text())
+                target_ide = config.get("ide", "copilot")
+            except json.JSONDecodeError:
+                pass
 
-        elif asset_type in ("skill", "agent"):
-            # Global vs local preference? For now, install locally to .github/prompts/
-            dest_dir = target_project_dir / ".github" / "prompts"
-            _copy_files(tmp_path, dest_dir, files)
-            
-        elif asset_type == "instruction":
-            dest_dir = target_project_dir / ".github" / "instructions"
-            _copy_files(tmp_path, dest_dir, files)
-            
-        elif asset_type == "workflow":
+        if asset_type == "workflow":
             dest_dir = target_project_dir / ".specify" / "templates"
             _copy_files(tmp_path, dest_dir, files)
+            return asset_type, str(dest_dir)
             
         elif asset_type == "extension":
             dest_dir = target_project_dir / ".origin" / "extensions" / name
             if dest_dir.exists():
                 shutil.rmtree(dest_dir)
             shutil.copytree(tmp_path, dest_dir, dirs_exist_ok=True)
+            return asset_type, str(dest_dir)
             
         else:
-            raise InstallerError(f"Unknown asset type '{asset_type}'. Please update origin-cli.")
-
-        return asset_type, str(dest_dir)
+            # Per-file dynamic routing based on extensions
+            installed_paths = set()
+            for f in files:
+                dest_dir = get_dest_dir(f, target_ide, is_global, target_project_dir)
+                if dest_dir:
+                    _copy_files(tmp_path, dest_dir, [f])
+                    installed_paths.add(str(dest_dir))
+            
+            return asset_type, ", ".join(installed_paths) if installed_paths else str(target_project_dir)
 
 
 def _copy_files(src_dir: Path, dest_dir: Path, files: list[str]) -> None:
