@@ -6,6 +6,7 @@ from origin_cli.integrations import agent_forge, speckit
 
 class TargetIDE(str, Enum):
     copilot = "copilot"
+    vscode = "vscode"  # VS Code with GitHub Copilot — uses same paths as copilot
     claude = "claude"
     cursor = "cursor"
 

@@ -19,6 +19,10 @@ def get_dest_dir(filename: str, target_ide: str, is_global: bool, target_project
     
     home = Path.home()
     
+    # VS Code uses GitHub Copilot which shares the same path structure
+    if target_ide == "vscode":
+        target_ide = "copilot"
+    
     if full_ext.endswith(".agent.md"):
         if target_ide == "copilot":
             return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
