@@ -13,7 +13,7 @@ class InstallerError(Exception):
     pass
 
 
-def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path] = None) -> None:
+def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path] = None) -> tuple[str, str]:
     """
     Extracts an .originpkg bundle from bytes in memory, reads its manifest, 
     and copies it to the appropriate local paths.
@@ -41,12 +41,21 @@ def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path]
         asset_type = manifest.get("type")
         files = manifest.get("files", [])
         name = manifest.get("name")
+        install_dir = manifest.get("install_dir")
 
         if not asset_type:
             raise InstallerError("Manifest missing 'type'")
 
-        # Route to appropriate locations
-        if asset_type in ("skill", "agent"):
+        # If manifest specifies install_dir, use it. Otherwise, use type-based defaults.
+        if install_dir:
+            # Prevent absolute paths or path traversal for security
+            clean_install_dir = Path(install_dir).resolve().relative_to(Path.cwd().resolve()) if Path(install_dir).is_absolute() else Path(install_dir)
+            if ".." in clean_install_dir.parts:
+                raise InstallerError(f"Invalid install_dir '{install_dir}': Path traversal not allowed.")
+            dest_dir = target_project_dir / clean_install_dir
+            _copy_files(tmp_path, dest_dir, files)
+
+        elif asset_type in ("skill", "agent"):
             # Global vs local preference? For now, install locally to .github/prompts/
             dest_dir = target_project_dir / ".github" / "prompts"
             _copy_files(tmp_path, dest_dir, files)
@@ -67,6 +76,8 @@ def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path]
             
         else:
             raise InstallerError(f"Unknown asset type '{asset_type}'. Please update origin-cli.")
+
+        return asset_type, str(dest_dir)
 
 
 def _copy_files(src_dir: Path, dest_dir: Path, files: list[str]) -> None:
