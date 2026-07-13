@@ -29,15 +29,16 @@ def set_url(url: str = typer.Argument(..., help="The full URL of the Hub Registr
 
 
 @app.command()
-def login(
+def register(
     username: str = typer.Option(..., prompt=True),
-    email: str = typer.Option(..., prompt=True)
+    email: str = typer.Option(..., prompt=True),
+    password: str = typer.Option(..., prompt=True, hide_input=True, confirmation_prompt=True)
 ):
-    """Register and authenticate with the Origin Hub."""
+    """Register a new account on the Origin Hub."""
     client = HubClient()
     try:
         with console.status(f"Registering {username}..."):
-            response = client.register_and_login(username, email)
+            response = client.register(username, email, password)
         
         api_key = response.get("api_key")
         if not api_key:
@@ -45,7 +46,31 @@ def login(
             raise typer.Exit(1)
             
         save_api_key(api_key)
-        typer.secho(f"Successfully logged in as {username}!", fg=typer.colors.GREEN)
+        typer.secho(f"Successfully registered and logged in as {username}!", fg=typer.colors.GREEN)
+        
+    except Exception as e:
+        typer.secho(f"Registration failed: {e}", fg=typer.colors.RED)
+        raise typer.Exit(1)
+
+
+@app.command()
+def login(
+    username_or_email: str = typer.Option(..., prompt="Username or Email"),
+    password: str = typer.Option(..., prompt=True, hide_input=True)
+):
+    """Authenticate with an existing account on the Origin Hub."""
+    client = HubClient()
+    try:
+        with console.status(f"Logging in {username_or_email}..."):
+            response = client.login(username_or_email, password)
+        
+        api_key = response.get("api_key")
+        if not api_key:
+            typer.secho("Failed to receive API key from server.", fg=typer.colors.RED)
+            raise typer.Exit(1)
+            
+        save_api_key(api_key)
+        typer.secho(f"Successfully logged in!", fg=typer.colors.GREEN)
         
     except Exception as e:
         typer.secho(f"Login failed: {e}", fg=typer.colors.RED)
@@ -137,22 +162,32 @@ def create(
     
     # 2. Create boilerplate
     if asset_type == "agent":
-        file_path = target_dir / "index.agent.md"
+        file_path = target_dir / "agents" / f"{name}.agent.md"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         content = f"---\nname: {name}\ndescription: Agent description here\n---\n\n# Role\n\n# Instructions\n"
+        file_path.write_text(content)
     elif asset_type == "instruction":
-        file_path = target_dir / "index.instructions.md"
+        file_path = target_dir / "instructions" / f"{name}.instructions.md"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         content = f"---\nname: {name}\ndescription: Instruction description here\n---\n\n# Guidelines\n"
+        file_path.write_text(content)
     elif asset_type == "skill":
-        file_path = target_dir / "index.skill.md"
+        file_path = target_dir / "skills" / name / "SKILL.md"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         content = f"---\nname: {name}\ndescription: Skill description here\n---\n\n# Usage\n\n# Description\n"
+        file_path.write_text(content)
     elif asset_type == "workflow":
-        file_path = target_dir / "workflow.yaml"
+        # Workflows contain all bundle components
+        for sub in ["agents", "skills", "instructions", "prompts"]:
+            (target_dir / sub).mkdir(parents=True, exist_ok=True)
+        file_path = target_dir / "workflows" / f"{name}.yaml"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         content = f"name: {name}\nsteps:\n  - name: Initial Step\n    run: echo 'Hello World'\n"
+        file_path.write_text(content)
     elif asset_type == "extension":
         file_path = target_dir / "extension.yaml"
         content = f"name: {name}\ndescription: Extension description\nfiles:\n  - src: ...\n    dest: ...\n"
-        
-    file_path.write_text(content)
+        file_path.write_text(content)
     
     typer.secho(f"✔ Successfully created '{asset_type}' asset in ./{name}/", fg=typer.colors.GREEN)
     typer.echo(f"  To publish your asset, run:  origin hub publish ./{name}/")

@@ -13,48 +13,63 @@ class InstallerError(Exception):
     pass
 
 
-def get_dest_dir(filename: str, target_ide: str, is_global: bool, target_project_dir: Path) -> Optional[Path]:
+def get_base_dest_dir(rel_path: Path, target_ide: str, is_global: bool, target_project_dir: Path) -> Optional[Path]:
+    home = Path.home()
+    if target_ide == "vscode": target_ide = "copilot"
+    
+    parts = rel_path.parts
+    top_dir = parts[0] if len(parts) > 1 else None
+    
+    # 1. Path-based routing for structured packages
+    if top_dir == "agents":
+        if target_ide == "copilot": return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
+        elif target_ide == "claude": return home / ".claude" / "agents" if is_global else target_project_dir / ".claude" / "agents"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
+            
+    elif top_dir == "instructions":
+        if target_ide == "copilot": return home / ".copilot" / "instructions" if is_global else target_project_dir / ".github" / "instructions"
+        elif target_ide == "claude": return home / ".claude" / "rules" if is_global else target_project_dir / ".claude" / "rules"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
+            
+    elif top_dir == "skills":
+        if target_ide == "copilot": return home / ".copilot" / "skills" if is_global else target_project_dir / ".github" / "skills"
+        elif target_ide == "claude": return home / ".claude" / "skills" if is_global else target_project_dir / ".claude" / "skills"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "skills"
+            
+    elif top_dir == "prompts":
+        if target_ide == "copilot": return target_project_dir / ".github" / "prompts"
+        elif target_ide == "claude": return home / ".claude" / "commands" if is_global else target_project_dir / ".claude" / "commands"
+        elif target_ide == "cursor": return home / ".cursor" / "commands" if is_global else target_project_dir / ".cursor" / "commands"
+
+    elif top_dir == "workflows":
+        if target_ide == "copilot": return target_project_dir / ".github" / "workflows"
+        elif target_ide == "claude": return target_project_dir / ".claude" / "workflows"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "workflows"
+
+    # 2. Extension-based fallback for flat files
+    filename = rel_path.name
     ext = Path(filename).suffixes
     full_ext = "".join(ext).lower()
     
-    home = Path.home()
-    
-    # VS Code uses GitHub Copilot which shares the same path structure
-    if target_ide == "vscode":
-        target_ide = "copilot"
-    
     if full_ext.endswith(".agent.md"):
-        if target_ide == "copilot":
-            return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
-        elif target_ide == "claude":
-            return home / ".claude" / "agents" if is_global else target_project_dir / ".claude" / "agents"
-        elif target_ide == "cursor":
-            # Fallback to rules for Cursor since agents are not officially supported
-            return target_project_dir / ".cursor" / "rules"
+        if target_ide == "copilot": return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
+        elif target_ide == "claude": return home / ".claude" / "agents" if is_global else target_project_dir / ".claude" / "agents"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
             
     elif full_ext.endswith(".instructions.md") or full_ext.endswith(".rule.md"):
-        if target_ide == "copilot":
-            return home / ".copilot" / "instructions" if is_global else target_project_dir / ".github" / "instructions"
-        elif target_ide == "claude":
-            return home / ".claude" / "rules" if is_global else target_project_dir / ".claude" / "rules"
-        elif target_ide == "cursor":
-            return target_project_dir / ".cursor" / "rules"
+        if target_ide == "copilot": return home / ".copilot" / "instructions" if is_global else target_project_dir / ".github" / "instructions"
+        elif target_ide == "claude": return home / ".claude" / "rules" if is_global else target_project_dir / ".claude" / "rules"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
             
-    elif full_ext.endswith(".skill.md"):
-        if target_ide == "copilot":
-            return home / ".copilot" / "skills" if is_global else target_project_dir / ".github" / "skills"
-        elif target_ide == "claude":
-            return home / ".claude" / "skills" if is_global else target_project_dir / ".claude" / "skills"
-        elif target_ide == "cursor":
-            return target_project_dir / ".cursor" / "skills"
+    elif filename == "SKILL.md" or full_ext.endswith(".skill.md"):
+        if target_ide == "copilot": return home / ".copilot" / "skills" if is_global else target_project_dir / ".github" / "skills"
+        elif target_ide == "claude": return home / ".claude" / "skills" if is_global else target_project_dir / ".claude" / "skills"
+        elif target_ide == "cursor": return target_project_dir / ".cursor" / "skills"
             
     elif full_ext.endswith(".prompt.md") or full_ext.endswith(".command.md"):
-        if target_ide == "copilot":
-            return target_project_dir / ".github" / "prompts"
-        elif target_ide == "claude":
-            return home / ".claude" / "commands" if is_global else target_project_dir / ".claude" / "commands"
-        elif target_ide == "cursor":
-            return home / ".cursor" / "commands" if is_global else target_project_dir / ".cursor" / "commands"
+        if target_ide == "copilot": return target_project_dir / ".github" / "prompts"
+        elif target_ide == "claude": return home / ".claude" / "commands" if is_global else target_project_dir / ".claude" / "commands"
+        elif target_ide == "cursor": return home / ".cursor" / "commands" if is_global else target_project_dir / ".cursor" / "commands"
             
     return target_project_dir / ".origin" / "misc"
 
@@ -109,26 +124,30 @@ def install_asset_bundle(bundle_bytes: bytes, target_project_dir: Optional[Path]
             return asset_type, str(dest_dir)
             
         else:
-            # workflow, agent, skill, instruction — all route per-file by extension
+            # Universal path-based routing
             installed_paths = set()
             for f in files:
-                dest_dir = get_dest_dir(f, target_ide, is_global, target_project_dir)
-                if dest_dir:
-                    _copy_files(tmp_path, dest_dir, [f])
-                    installed_paths.add(str(dest_dir))
+                rel_path = Path(f)
+                src_file = tmp_path / rel_path
+                if not src_file.is_file(): 
+                    continue
+                
+                base_dest_dir = get_base_dest_dir(rel_path, target_ide, is_global, target_project_dir)
+                if not base_dest_dir:
+                    continue
+                
+                # Strip the standard top-level directory (e.g. 'skills') and append the rest
+                if len(rel_path.parts) > 1 and rel_path.parts[0] in ["agents", "skills", "instructions", "prompts", "workflows"]:
+                    sub_path = Path(*rel_path.parts[1:])
+                else:
+                    sub_path = rel_path
+                    
+                final_dest = base_dest_dir / sub_path
+                final_dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_file, final_dest)
+                installed_paths.add(str(base_dest_dir))
             
             return asset_type, ", ".join(installed_paths) if installed_paths else str(target_project_dir)
-
-
-def _copy_files(src_dir: Path, dest_dir: Path, files: list[str]) -> None:
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    for f in files:
-        src_file = src_dir / f
-        if src_file.exists():
-            if src_file.is_dir():
-                shutil.copytree(src_file, dest_dir / f, dirs_exist_ok=True)
-            else:
-                shutil.copy2(src_file, dest_dir / f)
 
 
 def record_install(name: str, version: str, asset_type: str, install_path: str, project_dir: Optional[Path] = None) -> None:
