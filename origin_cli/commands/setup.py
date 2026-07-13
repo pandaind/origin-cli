@@ -9,40 +9,48 @@ def setup_command(
 ):
     """
     Bootstraps your machine with the AI development dependencies.
-    Acts as a global capabilities menu for origin CLI.
     """
     typer.secho("\nWelcome to Origin Setup! Let's bootstrap your machine dependencies.", fg=typer.colors.CYAN, bold=True)
     
-    # ── Agent Forge & Spec Kit (Copilot Integrations) ────────────────────────
-    typer.secho("\n1. GitHub Copilot & VS Code Integrations", fg=typer.colors.MAGENTA, bold=True)
-    if copilot is None:
-        typer.echo("   (Required if you plan to use GitHub Copilot or VS Code for any project)")
-        copilot = typer.confirm("   Install Copilot toolchain?", default=True)
+    # ── Workflow Selection ───────────────────────────────────────────────
+    if spec is None:
+        typer.secho("\nSelect your primary development mode:", fg=typer.colors.CYAN, bold=True)
+        typer.echo("  [1] Spec-driven (SDD)  — Full Agent Forge + Spec Kit orchestration")
+        typer.echo("  [2] Agent-driven (ADD) — Agent orchestration only\n")
 
-    if copilot:
-        if spec is None:
-            typer.secho("\n   Select your Copilot development mode:", fg=typer.colors.CYAN, bold=True)
-            typer.echo("     [1] Spec-driven (SDD)  — Agent Forge + Spec Kit (recommended)")
-            typer.echo("     [2] Agent-driven (ADD) — Agent Forge only\n")
+        while True:
+            choice = typer.prompt("Enter your choice", default="1")
+            if choice in ("1", "2"):
+                break
+            typer.secho("  Please enter 1 or 2.", fg=typer.colors.RED)
 
-            while True:
-                choice = typer.prompt("   Enter your choice", default="1")
-                if choice in ("1", "2"):
-                    break
-                typer.secho("     Please enter 1 or 2.", fg=typer.colors.RED)
+        spec = choice == "1"
 
-            spec = choice == "1"
-
-        typer.secho("\nChecking prerequisites for Copilot integrations...", fg=typer.colors.CYAN)
+    if spec:
+        typer.secho("\nMode: Spec-driven (SDD)", fg=typer.colors.GREEN)
+        typer.secho("Checking prerequisites for SDD...", fg=typer.colors.CYAN)
         ensure_node_npm()
-        if spec:
-            ensure_pipx()
-            
+        ensure_pipx()
         agent_forge.install()
-        if spec:
-            speckit.install()
+        speckit.install()
     else:
-        typer.secho("Skipping GitHub Copilot integrations.", fg=typer.colors.YELLOW)
+        typer.secho("\nMode: Agent-driven (ADD)", fg=typer.colors.GREEN)
+        typer.secho("\nSelect your ADD workflow:", fg=typer.colors.CYAN, bold=True)
+        typer.echo("  [1] agent-forge CLI  (Requires global npm installation)")
+        typer.echo("  [2] ide-only         (For Claude/Cursor - no global installation needed)\n")
+        
+        while True:
+            add_choice = typer.prompt("Enter your choice", default="2")
+            if add_choice in ("1", "2"):
+                break
+            typer.secho("  Please enter 1 or 2.", fg=typer.colors.RED)
+            
+        if add_choice == "1":
+            typer.secho("\nChecking prerequisites for agent-forge CLI...", fg=typer.colors.CYAN)
+            ensure_node_npm()
+            agent_forge.install()
+        else:
+            typer.secho("\n✔ No global dependencies required for ide-only ADD workflow.", fg=typer.colors.GREEN)
 
     # ── Headroom prompt compression ─────────────────────────────────────────
     if headroom is None:
