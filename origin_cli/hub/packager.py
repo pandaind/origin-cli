@@ -44,10 +44,24 @@ def create_asset_bundle(source_dir: Path) -> tuple[Path, Dict[str, Any]]:
     # Tar and gzip the directory contents
     try:
         with tarfile.open(bundle_path, "w:gz") as tar:
+            packaged_files = []
             for item in source_dir.iterdir():
-                if item.name in IGNORE_NAMES:
+                if item.name in IGNORE_NAMES or item.name == "hub-manifest.json":
                     continue
                 tar.add(item, arcname=item.name)
+                packaged_files.append(item.name)
+            
+            # Auto-populate 'files' if missing so users don't have to list them manually
+            if not manifest_data.get("files"):
+                manifest_data["files"] = packaged_files
+                
+            # Write the updated manifest directly to the tarball
+            import io
+            manifest_bytes = json.dumps(manifest_data, indent=2).encode("utf-8")
+            tarinfo = tarfile.TarInfo(name="hub-manifest.json")
+            tarinfo.size = len(manifest_bytes)
+            tar.addfile(tarinfo, io.BytesIO(manifest_bytes))
+            
     except Exception as e:
         if bundle_path.exists():
             bundle_path.unlink()
