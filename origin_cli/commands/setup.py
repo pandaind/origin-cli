@@ -26,31 +26,34 @@ def setup_command(
 
         spec = choice == "1"
 
+    # ── Execution Environment ────────────────────────────────────────────
+    typer.secho("\nSelect your execution environment:", fg=typer.colors.CYAN, bold=True)
+    typer.echo("  [1] Agent Forge CLI  (Requires global npm installation)")
+    typer.echo("  [2] IDE Native       (No global installation needed)\n")
+    
+    while True:
+        env_choice = typer.prompt("Enter your choice", default="2")
+        if env_choice in ("1", "2"):
+            break
+        typer.secho("  Please enter 1 or 2.", fg=typer.colors.RED)
+
+    # ── Installation Logic ───────────────────────────────────────────────
     if spec:
         typer.secho("\nMode: Spec-driven (SDD)", fg=typer.colors.GREEN)
         typer.secho("Checking prerequisites for SDD...", fg=typer.colors.CYAN)
-        ensure_node_npm()
         ensure_pipx()
-        agent_forge.install()
+        if env_choice == "1":
+            ensure_node_npm()
+            agent_forge.install()
         speckit.install()
     else:
         typer.secho("\nMode: Agent-driven (ADD)", fg=typer.colors.GREEN)
-        typer.secho("\nSelect your ADD workflow:", fg=typer.colors.CYAN, bold=True)
-        typer.echo("  [1] agent-forge CLI  (Requires global npm installation)")
-        typer.echo("  [2] ide-only         (For Claude/Cursor - no global installation needed)\n")
-        
-        while True:
-            add_choice = typer.prompt("Enter your choice", default="2")
-            if add_choice in ("1", "2"):
-                break
-            typer.secho("  Please enter 1 or 2.", fg=typer.colors.RED)
-            
-        if add_choice == "1":
-            typer.secho("\nChecking prerequisites for agent-forge CLI...", fg=typer.colors.CYAN)
+        if env_choice == "1":
+            typer.secho("Checking prerequisites for agent-forge CLI...", fg=typer.colors.CYAN)
             ensure_node_npm()
             agent_forge.install()
         else:
-            typer.secho("\n✔ No global dependencies required for ide-only ADD workflow.", fg=typer.colors.GREEN)
+            typer.secho("\n✔ No global dependencies required for IDE Native ADD workflow.", fg=typer.colors.GREEN)
 
     # ── Headroom prompt compression ─────────────────────────────────────────
     if headroom is None:
