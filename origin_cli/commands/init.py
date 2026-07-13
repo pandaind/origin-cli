@@ -38,11 +38,12 @@ def init_command(
     
     COPILOT_IDES = {TargetIDE.copilot, TargetIDE.vscode}
     
-    if ide_only:
-        typer.secho("Initializing IDE-only local files...", fg=typer.colors.CYAN)
-        agent_forge.init_ide(ide.value)
-    else:
+    if ide == TargetIDE.copilot and not ide_only:
+        typer.secho("Initializing Agent Forge via Copilot CLI...", fg=typer.colors.CYAN)
         agent_forge.init()
+    else:
+        typer.secho(f"Initializing IDE-native local files for {ide.value}...", fg=typer.colors.CYAN)
+        agent_forge.init_ide(ide.value)
         
     # Speckit is a GitHub Copilot-specific toolchain — only run for copilot/vscode
     if ide in COPILOT_IDES:
