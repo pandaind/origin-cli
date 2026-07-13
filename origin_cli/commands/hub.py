@@ -107,6 +107,58 @@ def search(query: str = typer.Argument(default="")):
 
 
 @app.command()
+def create(
+    name: str = typer.Argument(..., help="Name of the new asset (e.g., my-awesome-agent)"),
+    asset_type: str = typer.Option(..., "--type", "-t", help="Type of asset: agent, instruction, skill, workflow, extension")
+):
+    """Scaffold a new Hub asset with boilerplate files."""
+    valid_types = ["agent", "instruction", "skill", "workflow", "extension"]
+    if asset_type not in valid_types:
+        typer.secho(f"Invalid asset type. Must be one of: {', '.join(valid_types)}", fg=typer.colors.RED)
+        raise typer.Exit(1)
+        
+    target_dir = Path.cwd() / name
+    if target_dir.exists():
+        typer.secho(f"Directory '{name}' already exists. Please choose a different name.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+        
+    target_dir.mkdir(parents=True)
+    
+    # 1. Create manifest
+    import json
+    manifest = {
+        "name": name,
+        "version": "1.0.0",
+        "type": asset_type,
+        "description": f"A new Origin Hub {asset_type} asset.",
+        "author": "Your Name"
+    }
+    (target_dir / "hub-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+    
+    # 2. Create boilerplate
+    if asset_type == "agent":
+        file_path = target_dir / "index.agent.md"
+        content = f"---\nname: {name}\ndescription: Agent description here\n---\n\n# Role\n\n# Instructions\n"
+    elif asset_type == "instruction":
+        file_path = target_dir / "index.instructions.md"
+        content = f"---\nname: {name}\ndescription: Instruction description here\n---\n\n# Guidelines\n"
+    elif asset_type == "skill":
+        file_path = target_dir / "index.skill.md"
+        content = f"---\nname: {name}\ndescription: Skill description here\n---\n\n# Usage\n\n# Description\n"
+    elif asset_type == "workflow":
+        file_path = target_dir / "workflow.yaml"
+        content = f"name: {name}\nsteps:\n  - name: Initial Step\n    run: echo 'Hello World'\n"
+    elif asset_type == "extension":
+        file_path = target_dir / "extension.yaml"
+        content = f"name: {name}\ndescription: Extension description\nfiles:\n  - src: ...\n    dest: ...\n"
+        
+    file_path.write_text(content)
+    
+    typer.secho(f"✔ Successfully created '{asset_type}' asset in ./{name}/", fg=typer.colors.GREEN)
+    typer.echo(f"  To publish your asset, run:  origin hub publish ./{name}/")
+
+
+@app.command()
 def publish(path: str = typer.Argument(..., help="Path to the directory containing hub-manifest.json")):
     """Package and publish an asset to the Hub."""
     source_dir = Path(path).resolve()
