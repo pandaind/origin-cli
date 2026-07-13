@@ -1,0 +1,10 @@
+{
+  "name": "test-agent",
+  "version": "1.0.2",
+  "type": "agent",
+  "description": "A test agent for verifying publish",
+  "tags": ["test", "agent"],
+  "author": "testuser1",
+  "install_dir": "custom/agents_v2",
+  "files": ["test.agent.md"]
+}
