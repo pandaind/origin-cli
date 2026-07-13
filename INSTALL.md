@@ -65,33 +65,36 @@ Bootstrap your machine with the required AI development tools:
 origin setup
 ```
 
-`origin setup` walks you through four steps interactively:
+`origin setup` walks you through three steps interactively:
 
-**Step 1 — Development mode**
+**Step 1 — Methodology**
 ```
-Select your development mode:
-  [1] Spec-driven  — Agent Forge + Spec Kit (recommended for full workflows)
-  [2] Agent-driven — Agent Forge only (no Spec Kit)
+Select your primary development methodology:
+  [1] Spec Driven Development (SDD) - Architect-first workflow using Spec Kit
+  [2] Agent Driven Development (ADD) - Agent-first workflow using Agent Forge
 
 Enter your choice [1]:
 ```
 
-**Step 2 — Agent Forge** *(optional)*
+**Step 2 — Execution Environment**
 ```
-Install GitHub Copilot CLI and Agent Forge globally via npm? [Y/n]:
+Select your execution environment:
+  [1] CLI Toolchains - Global Node/Python packages (specify-cli, agent-forge-copilot)
+  [2] IDE Native - Zero global dependencies (directly scaffolds rules into .github/.cursor)
+
+Enter your choice [1]:
 ```
 
-**Step 3 — Spec Kit** *(spec-driven mode only)*  
-Installs `specify-cli` via pipx automatically.
+Based on your selection, it will orchestrate the installation of the required global tools or verify that your local environment is ready for native templating.
 
-**Step 4 — Headroom-AI prompt compression** *(optional)*
+**Step 3 — Headroom-AI prompt compression** *(optional)*
 ```
 Enable prompt compression via headroom-ai?
   (Wraps copilot + forge to compress file reads, tool outputs,
    and every LLM call. Typically 60-95% token reduction.) [Y/n]:
 ```
 
-When enabled, `headroom wrap` intercepts every API call made by `copilot` and `forge`
+When enabled, `headroom wrap` intercepts every API call made by your tools
 and compresses the full context window before it hits the model — including file reads,
 tool outputs, and prior turns. Originals are cached locally; the model can retrieve
 them on demand. No code changes required.

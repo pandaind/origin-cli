@@ -14,6 +14,7 @@ origin hub [COMMAND]
 | `login` | Register and authenticate with the Origin Hub |
 | `whoami` | Show the currently authenticated user |
 | `search` | Search the Hub for assets |
+| `create` | Scaffold a new Hub asset with boilerplate files |
 | `publish` | Package and publish an asset to the Hub |
 | `install` | Download and install an asset from the Hub |
 | `discover`| Scan the project and auto-install recommended assets |
@@ -77,31 +78,35 @@ origin hub install forge-react-expert
 
 ## 3. Publishing Your Own Assets
 
-If you have built an incredible Agent Forge persona or a useful set of instructions, you can publish it to the Hub for others to use!
+If you have built an incredible Agent Forge persona, skill, or a useful set of instructions, you can publish it to the Hub for others to use!
 
-### Step 1: Create a Manifest
-Create a folder containing your asset files. Inside that folder, you **must** create a `hub-manifest.json` file.
+### Step 1: Scaffold your Asset
 
-**Example `hub-manifest.json`:**
+Use the `create` command to automatically generate a boilerplate asset directory:
+```bash
+origin hub create forge-react-expert --type agent
+```
+This will create a `forge-react-expert/` directory with a standard `hub-manifest.json` and a boilerplate markdown file. 
+
+The `hub-manifest.json` will look something like this:
 ```json
 {
   "name": "forge-react-expert",
   "version": "1.0.0",
-  "type": "skill",
+  "type": "agent",
   "description": "An expert-level React Agent persona",
-  "tags": ["react", "typescript", "frontend"],
-  "author": "your_username",
-  "files": ["react-expert.agent.md"]
+  "author": "your_username"
 }
 ```
-*Note: The `files` array tells the CLI exactly which files to extract when someone installs your asset.*
 
 ### Step 2: Publish
-Point the publish command at your directory:
+
+Once you have filled out your asset files, point the publish command at your directory:
 ```bash
-origin hub publish ./path-to-your-asset-folder/
+origin hub publish ./forge-react-expert/
 ```
-The CLI will automatically bundle the folder into an `.originpkg` archive and upload it to the server!
+
+**Magic Under the Hood:** You do not need to manually list your files in the manifest! The CLI's packager will automatically detect all the files in your directory, inject them into the manifest's `files` array on-the-fly, bundle them into a `.originpkg` archive, and upload it to the server!
 
 ---
 

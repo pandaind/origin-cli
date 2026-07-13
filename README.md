@@ -47,58 +47,61 @@ pip install origin-cli
 
 ## 💻 Usage
 
-The CLI exposes two primary commands to get your AI environment up and running instantly.
+The CLI exposes core commands to get your AI environment up and running instantly.
 
 ### 1. `origin setup`
 
 This command bootstraps your host machine with the necessary underlying tools.
-It auto-detects and installs any missing prerequisites (`node`, `npm`, `pipx`) for your platform.
+It auto-detects and installs any missing prerequisites (`node`, `npm`, `pipx`) natively for Mac, Windows, or Linux.
 
 ```bash
 origin setup
 ```
 
-**Interactive flow:**
-1. **Mode selection** — choose spec-driven or agent-driven
-2. **Agent Forge** — install `@github/copilot` + `@agent-forge-copilot/cli` via npm (optional)
-3. **Spec Kit** — install `specify-cli` via pipx (spec-driven mode only)
-4. **Headroom** — enable transparent prompt compression (optional)
-
-**Headroom-AI prompt compression:**
-
-When enabled, `headroom wrap` intercepts every LLM call made by `copilot` and `forge`
-and compresses the full context window (file reads, tool outputs, previous turns)
-before it reaches the model. Typical reduction: **60–95% fewer tokens**.
-
-```bash
-origin setup --headroom    # enable compression
-origin setup --no-headroom # skip
-```
-
-**All flags (non-interactive):**
-
-| Flag | Effect |
-|------|--------|
-| `--spec` / `--no-spec` | Force spec-driven or agent-driven mode |
-| `--copilot` / `--no-copilot` | Install or skip GitHub Copilot CLI + Agent Forge |
-| `--headroom` / `--no-headroom` | Enable or skip headroom-ai prompt compression |
+**Interactive Configuration:**
+1. **Methodology** — Choose how you want to develop:
+   - **Spec Driven Development (SDD)**: Architect-first workflow using Spec Kit.
+   - **Agent Driven Development (ADD)**: Agent-first workflow using Agent Forge.
+2. **Execution Environment** — Choose where you want the AI orchestration to happen:
+   - **CLI Toolchains**: Installs robust global packages (`specify-cli`, `@agent-forge-copilot/cli`).
+   - **IDE Native**: Zero global dependencies. Installs assets directly into native `.github/`, `.claude/`, or `.cursor/` configuration folders.
+3. **Headroom** — Enable transparent prompt compression for token efficiency (optional).
 
 ### 2. `origin init`
 
-This command performs the "invisible magic" setup inside any project directory to initialize the AI workspace.
+This command initializes the AI workspace for a specific project.
 
 ```bash
 origin init
 ```
+
 **What it does:**
-1. Runs `forge init --mode analyze` to scan your repository and generate implementation agents.
-2. Runs `specify init . --integration copilot` to install the base Spec Kit slash commands.
+If you selected **CLI Toolchains** during setup, it orchestrates heavy commands like `forge init` and `specify init`.
+If you selected **IDE Native**, or pass an `--ide` flag directly, it bypasses the heavy CLI tooling and instantly scaffolds local agent, skill, and instruction files directly into your IDE's native configuration structure.
 
 **Options:**
-- `--ide` (or `-i`): IDE-Only Mode. Bypasses underlying NPM CLI tools and deploys a bundled fleet of Agent Forge personas directly into your global `~/.copilot/agents/` configuration, along with injecting local prompts.
-- `--extension <names>` (or `-e`): Automatically apply integration overrides. Accepts a single extension or a comma/space separated list. Available extensions: `jira`. For example, `--extension jira` injects a `/speckit.taskstoissues` template to natively sync Agent Forge workflows directly with your Jira MCP tools!
+- `--ide [copilot|vscode|claude|cursor]`: Forces IDE Native initialization and targets a specific editor's layout.
+- `--extension <names>`: Applies integration overrides (e.g., `jira` to sync workflows to Jira issues).
 
-### 3. `origin extension`
+### 3. `origin hub`
+
+The Origin Hub is a decentralized package registry for AI assets (Agents, Instructions, Skills, Workflows, Extensions).
+
+```bash
+# Scaffold a new package with boilerplate templates
+origin hub create my-database-expert --type agent
+
+# Publish an asset bundle to the registry
+origin hub publish ./my-database-expert
+
+# Install a community asset seamlessly into your project
+origin hub install forge-frontend-expert
+
+# Discover new assets
+origin hub search "react"
+```
+
+### 4. `origin extension`
 
 Origin acts as an orchestrator to manage vendor-neutral AI workspace extensions (packaging GitHub Copilot, Spec Kit, and MCP assets together).
 
@@ -117,7 +120,7 @@ origin extension list
 origin extension info <name>
 ```
 
-### 4. `origin preset`
+### 5. `origin preset`
 
 Origin securely wraps the native Spec Kit CLI to orchestrate the lifecycle of your custom AI process presets, without overriding Spec Kit's core functionality.
 
