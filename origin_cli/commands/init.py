@@ -40,7 +40,7 @@ def init_command(
     
     if ide_only:
         typer.secho("Initializing IDE-only local files...", fg=typer.colors.CYAN)
-        agent_forge.init_ide()
+        agent_forge.init_ide(ide.value)
     else:
         agent_forge.init()
         

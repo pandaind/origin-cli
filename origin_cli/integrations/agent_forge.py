@@ -23,9 +23,9 @@ def init():
     typer.echo("Running 'forge init --mode analyze'...")
     run_command(["forge", "init", "--mode", "analyze"])
 
-def init_ide():
+def init_ide(ide: str = "copilot"):
     """
-    Copies Agent Forge .agent.md templates into the user's global Copilot configuration.
+    Copies Agent Forge .agent.md templates into the user's global IDE configuration.
     Copies Agent Forge entrypoint prompts into the local project's .github/prompts directory.
     Validates YAML frontmatter on all copied templates.
     """
@@ -39,16 +39,33 @@ def init_ide():
         typer.secho(f"Error: Templates path {source_agents_path} does not exist.", fg=typer.colors.RED)
         return
         
-    copilot_agents_dir = Path.home() / ".copilot" / "agents"
-    copilot_agents_dir.mkdir(parents=True, exist_ok=True)
+    # Route global templates based on IDE
+    home = Path.home()
+    if ide in ["copilot", "vscode"]:
+        global_agents_dir = home / ".copilot" / "agents"
+    elif ide == "claude":
+        global_agents_dir = home / ".claude" / "agents"
+    elif ide == "cursor":
+        global_agents_dir = home / ".cursor" / "rules"
+    else:
+        global_agents_dir = home / ".copilot" / "agents"
+        
+    global_agents_dir.mkdir(parents=True, exist_ok=True)
     
     # 1. Copy agent templates
     copied_count = 0
+    skipped_count = 0
     valid_count = 0
-    typer.echo("Copying Agent Forge templates to global ~/.copilot/agents/...")
+    typer.echo(f"Copying Agent Forge templates to global {global_agents_dir}...")
     
     for agent_file in source_agents_path.rglob("*.agent.md"):
-        dest_file = copilot_agents_dir / agent_file.name
+        dest_file = global_agents_dir / agent_file.name
+        
+        # Skip if it already exists so we don't overwrite user changes
+        if dest_file.exists():
+            skipped_count += 1
+            continue
+            
         shutil.copy2(agent_file, dest_file)
         copied_count += 1
         
@@ -65,7 +82,8 @@ def init_ide():
         else:
             typer.secho(f"Warning: {agent_file.name} is missing valid YAML frontmatter.", fg=typer.colors.YELLOW)
             
-    typer.secho(f"Copied {copied_count} templates ({valid_count} validated).", fg=typer.colors.GREEN)
+    skip_msg = f" (skipped {skipped_count} existing)" if skipped_count > 0 else ""
+    typer.secho(f"Copied {copied_count} templates ({valid_count} validated){skip_msg}.", fg=typer.colors.GREEN)
     
     # 3. Copy local slash command prompts
     local_prompts_dir = Path(".github/prompts")
