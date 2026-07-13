@@ -59,12 +59,21 @@ class HubClient:
 
         return response.json()
 
-    def register_and_login(self, username: str, email: str) -> Dict[str, str]:
+    def register(self, username: str, email: str, password: str) -> Dict[str, str]:
         """Call POST /auth/register to get a new API key."""
         with httpx.Client() as client:
             resp = client.post(
                 f"{self.base_url}/auth/register",
-                json={"username": username, "email": email}
+                json={"username": username, "email": email, "password": password}
+            )
+            return self._handle_response(resp)
+
+    def login(self, username_or_email: str, password: str) -> Dict[str, str]:
+        """Call POST /auth/login to get a new API key."""
+        with httpx.Client() as client:
+            resp = client.post(
+                f"{self.base_url}/auth/login",
+                json={"username_or_email": username_or_email, "password": password}
             )
             return self._handle_response(resp)
 
