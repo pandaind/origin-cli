@@ -20,31 +20,29 @@ def get_base_dest_dir(rel_path: Path, target_ide: str, is_global: bool, target_p
     parts = rel_path.parts
     top_dir = parts[0] if len(parts) > 1 else None
     
+    # Define the local directory prefix for the IDE
+    ide_prefix = ".github" if target_ide == "copilot" else f".{target_ide}"
+    
     # 1. Path-based routing for structured packages
     if top_dir == "agents":
-        if target_ide == "copilot": return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
-        elif target_ide == "claude": return home / ".claude" / "agents" if is_global else target_project_dir / ".claude" / "agents"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
+        if target_ide == "copilot": return home / ".copilot" / "agents" if is_global else target_project_dir / ide_prefix / "agents"
+        elif target_ide == "cursor": return target_project_dir / ide_prefix / "rules"
+        else: return home / ide_prefix / "agents" if is_global else target_project_dir / ide_prefix / "agents"
             
     elif top_dir == "instructions":
-        if target_ide == "copilot": return home / ".copilot" / "instructions" if is_global else target_project_dir / ".github" / "instructions"
-        elif target_ide == "claude": return home / ".claude" / "rules" if is_global else target_project_dir / ".claude" / "rules"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
+        if target_ide == "copilot": return home / ".copilot" / "instructions" if is_global else target_project_dir / ide_prefix / "instructions"
+        else: return home / ide_prefix / "rules" if is_global else target_project_dir / ide_prefix / "rules"
             
     elif top_dir == "skills":
-        if target_ide == "copilot": return home / ".copilot" / "skills" if is_global else target_project_dir / ".github" / "skills"
-        elif target_ide == "claude": return home / ".claude" / "skills" if is_global else target_project_dir / ".claude" / "skills"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "skills"
+        if target_ide == "copilot": return home / ".copilot" / "skills" if is_global else target_project_dir / ide_prefix / "skills"
+        else: return home / ide_prefix / "skills" if is_global else target_project_dir / ide_prefix / "skills"
             
     elif top_dir == "prompts":
-        if target_ide == "copilot": return target_project_dir / ".github" / "prompts"
-        elif target_ide == "claude": return home / ".claude" / "commands" if is_global else target_project_dir / ".claude" / "commands"
-        elif target_ide == "cursor": return home / ".cursor" / "commands" if is_global else target_project_dir / ".cursor" / "commands"
+        if target_ide == "copilot": return target_project_dir / ide_prefix / "prompts"
+        else: return home / ide_prefix / "commands" if is_global else target_project_dir / ide_prefix / "commands"
 
     elif top_dir == "workflows":
-        if target_ide == "copilot": return target_project_dir / ".github" / "workflows"
-        elif target_ide == "claude": return target_project_dir / ".claude" / "workflows"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "workflows"
+        return target_project_dir / ide_prefix / "workflows"
 
     # 2. Extension-based fallback for flat files
     filename = rel_path.name
@@ -52,24 +50,21 @@ def get_base_dest_dir(rel_path: Path, target_ide: str, is_global: bool, target_p
     full_ext = "".join(ext).lower()
     
     if full_ext.endswith(".agent.md"):
-        if target_ide == "copilot": return home / ".copilot" / "agents" if is_global else target_project_dir / ".github" / "agents"
-        elif target_ide == "claude": return home / ".claude" / "agents" if is_global else target_project_dir / ".claude" / "agents"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
+        if target_ide == "copilot": return home / ".copilot" / "agents" if is_global else target_project_dir / ide_prefix / "agents"
+        elif target_ide == "cursor": return target_project_dir / ide_prefix / "rules"
+        else: return home / ide_prefix / "agents" if is_global else target_project_dir / ide_prefix / "agents"
             
     elif full_ext.endswith(".instructions.md") or full_ext.endswith(".rule.md"):
-        if target_ide == "copilot": return home / ".copilot" / "instructions" if is_global else target_project_dir / ".github" / "instructions"
-        elif target_ide == "claude": return home / ".claude" / "rules" if is_global else target_project_dir / ".claude" / "rules"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "rules"
+        if target_ide == "copilot": return home / ".copilot" / "instructions" if is_global else target_project_dir / ide_prefix / "instructions"
+        else: return home / ide_prefix / "rules" if is_global else target_project_dir / ide_prefix / "rules"
             
     elif filename == "SKILL.md" or full_ext.endswith(".skill.md"):
-        if target_ide == "copilot": return home / ".copilot" / "skills" if is_global else target_project_dir / ".github" / "skills"
-        elif target_ide == "claude": return home / ".claude" / "skills" if is_global else target_project_dir / ".claude" / "skills"
-        elif target_ide == "cursor": return target_project_dir / ".cursor" / "skills"
+        if target_ide == "copilot": return home / ".copilot" / "skills" if is_global else target_project_dir / ide_prefix / "skills"
+        else: return home / ide_prefix / "skills" if is_global else target_project_dir / ide_prefix / "skills"
             
     elif full_ext.endswith(".prompt.md") or full_ext.endswith(".command.md"):
-        if target_ide == "copilot": return target_project_dir / ".github" / "prompts"
-        elif target_ide == "claude": return home / ".claude" / "commands" if is_global else target_project_dir / ".claude" / "commands"
-        elif target_ide == "cursor": return home / ".cursor" / "commands" if is_global else target_project_dir / ".cursor" / "commands"
+        if target_ide == "copilot": return target_project_dir / ide_prefix / "prompts"
+        else: return home / ide_prefix / "commands" if is_global else target_project_dir / ide_prefix / "commands"
             
     return target_project_dir / ".origin" / "misc"
 

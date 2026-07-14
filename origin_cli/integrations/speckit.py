@@ -13,10 +13,10 @@ def uninstall():
     typer.echo("Uninstalling specify-cli via pipx...")
     run_command(["pipx", "uninstall", "specify-cli"], check=False)
 
-def init():
+def init(integration: str = "copilot"):
     """Run specify init."""
-    typer.echo("Running 'specify init . --integration copilot'...")
-    run_command(["specify", "init", ".", "--integration", "copilot"])
+    typer.echo(f"Running 'specify init . --integration {integration}'...")
+    run_command(["specify", "init", ".", "--integration", integration])
 
 def inject_core_overrides():
     """Override the default speckit commands to enforce Agent Forge fleet delegation and MCP awareness."""
