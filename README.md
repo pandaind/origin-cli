@@ -13,6 +13,7 @@
 - [Usage](#-usage)
   - [origin setup](#1-origin-setup)
   - [origin init](#2-origin-init)
+  - [origin migrate](#6-origin-migrate)
 - [How it Works](#-how-it-works)
 - [Contributing](#-contributing)
 
@@ -137,6 +138,18 @@ origin preset enable <name>
 origin preset disable <name>
 origin preset list
 origin preset info <name>
+```
+
+### 6. `origin migrate`
+
+Seamlessly migrate your local project configuration (prompts, agents, rules) from one IDE folder structure to another.
+
+```bash
+# Migrate project setup from GitHub Copilot to Cursor
+origin migrate --from copilot --to cursor
+
+# Copy the configuration instead of moving it
+origin migrate --from copilot --to cursor --copy
 ```
 
 ## 🧠 How it Works
