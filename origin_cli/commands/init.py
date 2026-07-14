@@ -9,10 +9,6 @@ class TargetIDE(str, Enum):
     vscode = "vscode"  # VS Code with GitHub Copilot — uses same paths as copilot
     claude = "claude"
     cursor = "cursor"
-    gemini = "gemini"
-    codebuddy = "codebuddy"
-    pi = "pi"
-    omp = "omp"
 
 def init_command(
     ide: TargetIDE = typer.Option(TargetIDE.copilot, "--ide", "-i", help="Target IDE for Origin CLI integration (copilot, claude, cursor)"),
@@ -40,7 +36,7 @@ def init_command(
     config_file.write_text(json.dumps(config, indent=2))
     typer.secho(f"Target IDE configured as: {ide.value}", fg=typer.colors.CYAN)
     
-    COPILOT_IDES = {TargetIDE.copilot, TargetIDE.vscode}
+    SPECKIT_IDES = {TargetIDE.copilot, TargetIDE.vscode, TargetIDE.claude}
     
     if ide == TargetIDE.copilot and not ide_only:
         typer.secho("Initializing Agent Forge via Copilot CLI...", fg=typer.colors.CYAN)
@@ -49,13 +45,15 @@ def init_command(
         typer.secho(f"Initializing IDE-native local files for {ide.value}...", fg=typer.colors.CYAN)
         agent_forge.init_ide(ide.value)
         
-    if not ide_only:
-        # Speckit supports various integrations
+    if ide in SPECKIT_IDES and not ide_only:
+        # vscode uses the copilot integration internally
         integration = "copilot" if ide.value == "vscode" else ide.value
         speckit.init(integration)
         speckit.inject_core_overrides()
         
         if extension:
             speckit.apply_extensions(extension)
+    else:
+        typer.secho(f"Skipping Speckit setup (not required for {ide.value}).", fg=typer.colors.YELLOW)
         
     typer.secho("Project initialization complete!", fg=typer.colors.GREEN, bold=True)
